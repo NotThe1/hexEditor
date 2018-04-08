@@ -1,5 +1,6 @@
 package hexEditor;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -240,6 +241,8 @@ public class HexEditor {
 		if (activeFile != null) {
 			doFileClose();
 		} // if
+		
+		System.out.println("Divider Location = " + splitPaneMajor.getDividerLocation());
 	}// appClose
 
 	private void appInit() {
@@ -251,7 +254,7 @@ public class HexEditor {
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		frameBase.setSize(myPrefs.getInt("Width", 761), myPrefs.getInt("Height", 693));
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
-		splitPaneMajor.setDividerLocation(myPrefs.getInt("DividerLocationMajor", 250));
+		splitPaneMajor.setDividerLocation(800);
 		splitPaneMinor.setDividerLocation(myPrefs.getInt("DividerLocationMinor", 100));
 		currentPath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
@@ -265,19 +268,15 @@ public class HexEditor {
 
 	private void initActions() {
 		/* setup action for standard edit behaviors */
-		Action[] actions = textPaneLog.getActions();
 
-		Action cutAction = findAction(actions, DefaultEditorKit.cutAction);
-		btnEditCut.addActionListener(cutAction);
-		mnuEditCut.addActionListener(cutAction);
+		btnEditCut.addActionListener(new DefaultEditorKit.CutAction());
+		mnuEditCut.addActionListener(new DefaultEditorKit.CutAction());
 
-		Action copyAction = findAction(actions, DefaultEditorKit.copyAction);
-		btnEditCopy.addActionListener(copyAction);
-		mnuEditCut.addActionListener(copyAction);
+		btnEditCopy.addActionListener(new DefaultEditorKit.CopyAction());
+		mnuEditCut.addActionListener(new DefaultEditorKit.CopyAction());
 
-		Action pasteAction = findAction(actions, DefaultEditorKit.pasteAction);
-		btnEditPaste.addActionListener(pasteAction);
-		mnuEditPaste.addActionListener(pasteAction);
+		btnEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
+		mnuEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
 
 		//////////////////////////////////////////////////////////
 		actionUndo = new AbstractAction("Undo") {
@@ -461,7 +460,7 @@ public class HexEditor {
 		frameBase.getContentPane().add(lblFileName, gbc_lblFileName);
 
 		splitPaneMajor = new JSplitPane();
-		splitPaneMajor.setOneTouchExpandable(true);
+		splitPaneMajor.setAlignmentX(Component.CENTER_ALIGNMENT);
 		GridBagConstraints gbc_splitPaneMajor = new GridBagConstraints();
 		gbc_splitPaneMajor.insets = new Insets(0, 0, 5, 0);
 		gbc_splitPaneMajor.fill = GridBagConstraints.BOTH;
@@ -497,14 +496,26 @@ public class HexEditor {
 		splitPaneMinor.setDividerLocation(100);
 		
 		panelMainDisplay = new JPanel();
+		panelMainDisplay.setPreferredSize(new Dimension(0, 0));
+		panelMainDisplay.setMinimumSize(new Dimension(804, 0));
+		panelMainDisplay.setMaximumSize(new Dimension(0, 0));
+		panelMainDisplay.setBackground(Color.GRAY);
 		splitPaneMajor.setLeftComponent(panelMainDisplay);
 		GridBagLayout gbl_panelMainDisplay = new GridBagLayout();
-		gbl_panelMainDisplay.columnWidths = new int[]{0};
-		gbl_panelMainDisplay.rowHeights = new int[]{0};
-		gbl_panelMainDisplay.columnWeights = new double[]{Double.MIN_VALUE};
-		gbl_panelMainDisplay.rowWeights = new double[]{Double.MIN_VALUE};
+		gbl_panelMainDisplay.columnWidths = new int[]{0, 0};
+		gbl_panelMainDisplay.rowHeights = new int[]{0, 0};
+		gbl_panelMainDisplay.columnWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_panelMainDisplay.rowWeights = new double[]{1.0, Double.MIN_VALUE};
 		panelMainDisplay.setLayout(gbl_panelMainDisplay);
-
+		
+		panelEditPane = new HexEditDisplayPanel();
+		panelEditPane.setMaximumSize(new Dimension(786, 2147483647));
+		GridBagConstraints gbc_panelEditPane = new GridBagConstraints();
+		gbc_panelEditPane.fill = GridBagConstraints.BOTH;
+		gbc_panelEditPane.gridx = 0;
+		gbc_panelEditPane.gridy = 0;
+		panelMainDisplay.add(panelEditPane, gbc_panelEditPane);
+		
 		JPanel panelStatus = new JPanel();
 		panelStatus.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		GridBagConstraints gbc_panelStatus = new GridBagConstraints();
@@ -703,6 +714,7 @@ public class HexEditor {
 	private JMenuItem mnuEditRedo;
 	private JMenuItem mnuEditCut;
 	private JPanel panelMainDisplay;
+	private HexEditDisplayPanel panelEditPane;
 	//////////////////////////////////////////////////////////////////////////
 
 	class ApplicationAdapter implements ActionListener {// , ListSelectionListener
