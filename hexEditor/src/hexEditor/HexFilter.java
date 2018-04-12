@@ -7,7 +7,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-public class HexDocumentFilter extends DocumentFilter {
+public class HexFilter extends DocumentFilter {
 
 	@Override
 	public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr)
@@ -25,7 +25,7 @@ public class HexDocumentFilter extends DocumentFilter {
 
 		Matcher m = onehexPattern.matcher(text);
 		if ((length==0) && m.matches()) { // replace one Hex digit char
-			int position = offset % COLUMNS_PER_LINE; // Calculate the column position		
+//			int position = offset % COLUMNS_PER_LINE; // Calculate the column position		
 			fb.replace(offset, 1, text.toUpperCase(), attrs);
 		}else {
 			// TODO - a real replace
@@ -35,10 +35,10 @@ public class HexDocumentFilter extends DocumentFilter {
 	
 	Pattern onehexPattern = Pattern.compile("[0123456789ABCDEFabcdef]{1}");
 	
-	private static final int BYTES_PER_LINE = HexDocumentNavigation.BYTES_PER_LINE; // Number of bytes from source file to display on each line
-
-	private static final int CHARS_PER_LINE = HexDocumentNavigation.CHARS_PER_LINE; // Number of chars displayed in the Hex text pane
-	private static final int COLUMNS_PER_LINE = HexDocumentNavigation.COLUMNS_PER_LINE; // actual length of the line< includes /n/r
+//	private static final int BYTES_PER_LINE = HexNavigation.BYTES_PER_LINE; // Number of bytes from source file to display on each line
+//
+//	private static final int CHARS_PER_LINE = HexNavigation.CHARS_PER_LINE; // Number of chars displayed in the Hex text pane
+//	private static final int COLUMNS_PER_LINE = HexNavigation.COLUMNS_PER_LINE; // actual length of the line< includes /n/r
 //	private static final int MID_LINE_SPACE = HexDocumentNavigation.MID_LINE_SPACE; // place where extra space is placed on the line
 
 

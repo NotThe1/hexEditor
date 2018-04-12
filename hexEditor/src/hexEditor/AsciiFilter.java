@@ -5,7 +5,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
 
-public class AsciiDocumentFilter extends DocumentFilter {
+public class AsciiFilter extends DocumentFilter {
 
 	public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
 			throws BadLocationException {
