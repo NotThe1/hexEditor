@@ -366,7 +366,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			indexDoc.remove(0, indexDoc.getLength());
 			indexDoc.insertString(0, INDEX_DATA, addressAttributes);
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 	}// appInit
 
@@ -549,8 +549,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		private Highlighter.HighlightPainter highlightPainterPink = new DefaultHighlighter.DefaultHighlightPainter(
 				Color.PINK);
 
-		Object tag;
-
 		@Override
 		public void caretUpdate(CaretEvent caretEvent) {
 			int dotStart = caretEvent.getDot();
@@ -586,13 +584,13 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			try {
 				clearHighlights(highlighterSource);
 				clearHighlights(highlighterOther);
-				tag = highlighterSource.addHighlight(dotStart, dotEnd, highlightPainterYellow);
-				tag = highlighterOther.addHighlight(otherDotStart, otherDotEnd, highlightPainterYellow);
+				highlighterSource.addHighlight(dotStart, dotEnd, highlightPainterYellow); 
+				highlighterOther.addHighlight(otherDotStart, otherDotEnd, highlightPainterYellow);
 
 				clearHighlights(highlighterAddress);
 				clearHighlights(highlighterIndex);
-				tag = highlighterAddress.addHighlight(addressDotStart, addressDotEnd, highlightPainterPink);
-				tag = highlighterIndex.addHighlight(indexDotStart, indexDotEnd, highlightPainterPink);
+				highlighterAddress.addHighlight(addressDotStart, addressDotEnd, highlightPainterPink);
+				highlighterIndex.addHighlight(indexDotStart, indexDotEnd, highlightPainterPink);
 
 			} catch (BadLocationException e) {
 				// TODO Auto-generated catch block
@@ -621,8 +619,5 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	}// class adapterHexEditDisplay
 
-	class Cell {
-		int row, col;
-	}// class Cell
 
 }// class HexEditDisplayPanel

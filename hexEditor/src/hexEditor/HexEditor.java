@@ -29,7 +29,6 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -192,14 +191,14 @@ public class HexEditor {
 	
 	}// loadFile
 
-	private Action findAction(Action[] actions, String key) {
-		for (Action action : actions) {
-			if (action.getValue(Action.NAME).equals(key)) {
-				return action;
-			} // if
-		} // for
-		return null;
-	}// findAction
+//	private Action findAction(Action[] actions, String key) {
+//		for (Action action : actions) {
+//			if (action.getValue(Action.NAME).equals(key)) {
+//				return action;
+//			} // if
+//		} // for
+//		return null;
+//	}// findAction
 
 	// ---------------------------------------------------------
 
@@ -609,8 +608,8 @@ public class HexEditor {
 		btnNewButton = new JButton("Test button - read");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				byte[] values = new byte[2048];
 				try {
+					byte[] values = new byte[2048];
 					Path in = Paths.get(testInput.getText());
 					 values = Files.readAllBytes(in);
 					hexEditDisplay.setData(values);
