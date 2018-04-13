@@ -21,7 +21,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JTextPane;
-import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -52,13 +51,14 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private int currentExtent;
 
 	protected StyledDocument addrDoc;// = new DefaultStyledDocument();
+	protected StyledDocument indexDoc;// = new DefaultStyledDocument();
 
 	protected StyledDocument hexDoc;// = new DefaultStyledDocument();
-	protected HexFilter hexFilter = new HexFilter();
+	protected HexFilter hexFilter = new HexFilter(this);
 	protected HexNavigation hexNavigation;// = new HexDocumentNavigation();
 
 	protected StyledDocument asciiDoc = new DefaultStyledDocument();
-	protected AsciiFilter asciiFilter = new AsciiFilter();
+	protected AsciiFilter asciiFilter = new AsciiFilter(this);
 	protected AsciiNavigation asciiNavigation; // = new AsciiNavigation();
 
 	protected SortedMap<Integer, Byte> changes;
@@ -82,6 +82,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 		fillPane();
 	}// run
+	
+	public int getCurrentLineStart() {
+		return this.currentLineStart;
+	}//getCurrentLineStart
 
 	void fillPane() {
 		if (currentExtent == 0) {
@@ -90,11 +94,15 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 		// clearFilters(); // suspend doc filter
 
+		setTextPanesCaretListeners(false);
 		clearAllDocs();
 
-		int sourceIndex = currentLineStart * LINE_SIZE; // address to
-														// display
+		int sourceIndex = currentLineStart * LINE_SIZE; // address to display
+
 		byte[] activeLine = new byte[LINE_SIZE];
+		String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X, currentMax - currentLineStart: %04X%n",
+				currentExtent, currentMax,currentLineStart,currentMax - currentLineStart);
+		System.out.println(message);
 		int linesToDisplay = Math.min(currentExtent, currentMax - currentLineStart);
 
 		int bytesToRead = LINE_SIZE;
@@ -116,6 +124,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		} // for
 			// restoreFilters();
 			// hexNavigationFilter.setLastLine(bytesToRead, linesToDisplay - 1);
+		setTextPanesCaretListeners(true);
 		textHex.setCaretPosition(0);
 	}// fillPane
 
@@ -156,6 +165,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		return rawData;
 	}// applyChanges
 
+	public void clear() {
+		clearAllDocs();
+	}// clear
+
 	private void clearAllDocs() {
 		try {
 			addrDoc.remove(0, addrDoc.getLength());
@@ -166,6 +179,21 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		} // try
 
 	}// clearAllDocs
+
+	private void setTextPanesCaretListeners(boolean status) {
+		/* status true = on/enables; false = off/disabled */
+
+		if (status) {
+			textAddr.addCaretListener(adapterHexEditDisplay);
+			textHex.addCaretListener(adapterHexEditDisplay);
+			textAscii.addCaretListener(adapterHexEditDisplay);
+		} else {
+			textAddr.removeCaretListener(adapterHexEditDisplay);
+			textHex.removeCaretListener(adapterHexEditDisplay);
+			textAscii.removeCaretListener(adapterHexEditDisplay);
+		} //
+
+	}// setTextPanesEnabled
 
 	private void clearDoc(StyledDocument doc) {
 		try {
@@ -314,7 +342,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private void appInit() {
 
 		hexDoc = textHex.getStyledDocument();
-		hexFilter = new HexFilter();
+//		hexFilter = new HexFilter(this);
 
 		((AbstractDocument) hexDoc).setDocumentFilter(hexFilter);
 		hexNavigation = new HexNavigation();
@@ -323,15 +351,23 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		textHex.setNavigationFilter(hexNavigation);
 
 		asciiDoc = textAscii.getStyledDocument();
-		asciiFilter = new AsciiFilter();
+//		asciiFilter = new AsciiFilter(this);
 		((AbstractDocument) asciiDoc).setDocumentFilter(asciiFilter);
 		asciiNavigation = new AsciiNavigation();
 		// asciiNavigation = new AsciiNavigation(textAscii);
 
 		textAscii.setNavigationFilter(asciiNavigation);
 
-		addrDoc = textAddr.getStyledDocument();
 		makeStyles();
+
+		addrDoc = textAddr.getStyledDocument();
+		indexDoc = textIndex.getStyledDocument();
+		try {
+			indexDoc.remove(0, indexDoc.getLength());
+			indexDoc.insertString(0, INDEX_DATA, addressAttributes);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}// appInit
 
 	private void initialize() {
@@ -347,6 +383,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		setLayout(gridBagLayout);
 
 		lblNewLabel_1 = new JLabel("00000000:");
+		lblNewLabel_1.setVisible(false);
 		lblNewLabel_1.setPreferredSize(new Dimension(92, 14));
 		lblNewLabel_1.setMinimumSize(new Dimension(92, 14));
 		lblNewLabel_1.setMaximumSize(new Dimension(92, 14));
@@ -359,16 +396,16 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		gbc_lblNewLabel_1.gridy = 0;
 		add(lblNewLabel_1, gbc_lblNewLabel_1);
 
-		JLabel lblNewLabel = new JLabel("00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F");
-		lblNewLabel.setHorizontalAlignment(SwingConstants.LEFT);
-		lblNewLabel.setBorder(null);
-		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
-		gbc_lblNewLabel.anchor = GridBagConstraints.WEST;
-		gbc_lblNewLabel.insets = new Insets(0, 9, 5, 5);
-		gbc_lblNewLabel.gridx = 1;
-		gbc_lblNewLabel.gridy = 0;
-		add(lblNewLabel, gbc_lblNewLabel);
-		lblNewLabel.setFont(new Font("Courier New", Font.BOLD, 16));
+		textIndex = new JTextPane();
+		textIndex.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		textIndex.setFont(new Font("Courier New", Font.BOLD, 16));
+		GridBagConstraints gbc_textIndex = new GridBagConstraints();
+		gbc_textIndex.anchor = GridBagConstraints.WEST;
+		gbc_textIndex.insets = new Insets(0, 0, 5, 5);
+		gbc_textIndex.gridx = 1;
+		gbc_textIndex.gridy = 0;
+		add(textIndex, gbc_textIndex);
+		textIndex.setFont(new Font("Courier New", Font.BOLD, 16));
 
 		lblCodeType = new JLabel("UTF-8");
 		lblCodeType.setFont(new Font("Courier New", Font.PLAIN, 16));
@@ -443,6 +480,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	private static final String TEXT_HEX = "textHex";
 	private static final String TEXT_ASCII = "textAscii";
+	private static final String INDEX_DATA = "00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F";
 
 	private JScrollBar scrollBar;
 	private JLabel lblCodeType;
@@ -450,6 +488,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private JTextPane textAscii;
 	private JLabel lblNewLabel_1;
 	private JTextPane textAddr;
+	private JTextPane textIndex;
 
 	///////////////////////////////////////////////////////////
 
@@ -503,33 +542,58 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 		// /* ----------------- CaretListener ---------------*/
 		private Highlighter highlighterSource, highlighterOther;
-		private Highlighter.HighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(
+		private Highlighter highlighterAddress;
+		private Highlighter highlighterIndex;
+		private Highlighter.HighlightPainter highlightPainterYellow = new DefaultHighlighter.DefaultHighlightPainter(
 				Color.YELLOW);
+		private Highlighter.HighlightPainter highlightPainterPink = new DefaultHighlighter.DefaultHighlightPainter(
+				Color.PINK);
+
 		Object tag;
 
 		@Override
 		public void caretUpdate(CaretEvent caretEvent) {
-			int dot = caretEvent.getDot();
+			int dotStart = caretEvent.getDot();
+			int dotEnd = dotStart + 1;
+			int otherDotStart, otherDotEnd;
+			int asciiDot;
+			int addressDotStart, addressDotEnd;
+			int indexDotStart, indexDotEnd;
 			String name = ((Component) caretEvent.getSource()).getName();
 			String message = "no Message";
+			highlighterIndex = textIndex.getHighlighter();
+			highlighterAddress = textAddr.getHighlighter();
 			highlighterSource = ((JTextComponent) caretEvent.getSource()).getHighlighter();
-			int otherDot;
 			if (name.equals(TEXT_HEX)) {
 				highlighterOther = textAscii.getHighlighter();
-				otherDot = TextCell.getAsciiDot(dot);
-
+				otherDotStart = HEUtility.getAsciiDot(dotStart);
+				otherDotEnd = otherDotStart + 1;
+				asciiDot = otherDotStart;
 			} else if (name.equals(TEXT_ASCII)) {
 				highlighterOther = textHex.getHighlighter();
-				otherDot = TextCell.getHexDot(dot);
+				otherDotStart = HEUtility.getHexDot(dotStart);
+				otherDotEnd = otherDotStart + 2;
+				asciiDot = dotStart;
 			} else {
 				return; // no a good event
 			} // if
 
+			addressDotStart = HEUtility.getAddressDot(asciiDot);
+			addressDotEnd = addressDotStart + HEUtility.CHARS_PER_LINE_ADDR;
+			indexDotStart = HEUtility.getIndexDot(asciiDot);
+			indexDotEnd = indexDotStart + 2;
+
 			try {
 				clearHighlights(highlighterSource);
 				clearHighlights(highlighterOther);
-				tag = highlighterSource.addHighlight(dot, dot + 1, highlightPainter);
-				tag = highlighterOther.addHighlight(otherDot, otherDot + 1, highlightPainter);
+				tag = highlighterSource.addHighlight(dotStart, dotEnd, highlightPainterYellow);
+				tag = highlighterOther.addHighlight(otherDotStart, otherDotEnd, highlightPainterYellow);
+
+				clearHighlights(highlighterAddress);
+				clearHighlights(highlighterIndex);
+				tag = highlighterAddress.addHighlight(addressDotStart, addressDotEnd, highlightPainterPink);
+				tag = highlighterIndex.addHighlight(indexDotStart, indexDotEnd, highlightPainterPink);
+
 			} catch (BadLocationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

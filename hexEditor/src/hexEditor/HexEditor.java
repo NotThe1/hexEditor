@@ -9,6 +9,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -18,6 +19,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -94,6 +96,7 @@ public class HexEditor {
 		btnFileNew.setEnabled(true);
 		mnuFileOpen.setEnabled(true);
 		btnFileOpen.setEnabled(true);
+		hexEditDisplay.clear();
 	}// ClearFile
 
 	private void setupFile() {
@@ -160,11 +163,33 @@ public class HexEditor {
 
 	}// disableAllActivity
 
-	private void loadFile(File file) {
-		activeFile = file;
+	private void loadFile(File sourceFile) {
+		activeFile = sourceFile;
 		currentPath = activeFile.getParent();
-		log.addInfo("Loading File -> " + file.toString());
+		log.addInfo("Loading File -> " + sourceFile.toString());
 		setActivityStates(FILE_ACTIVE);
+		closeFile();
+		
+		long sourceLength = sourceFile.length();
+		if (sourceLength >= Integer.MAX_VALUE){
+			Toolkit.getDefaultToolkit().beep();
+			String message = String.format("[HexEditPanelFile : loadData] file too large %,d%n", sourceLength);
+			log.addWarning(message);
+			return;
+		}//if
+		
+		try(RandomAccessFile raf = new RandomAccessFile(sourceFile, "rw")) {
+			fileChannel = raf.getChannel();
+			fileMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileChannel.size());// this.totalBytesOnDisk);
+			fileChannel.close();
+		} catch (IOException ioe) {
+			Toolkit.getDefaultToolkit().beep();
+			log.addError("[loadFile]: " + ioe.getMessage());
+		}//try
+
+		hexEditDisplay.setData(fileMap);
+		hexEditDisplay.run();
+	
 	}// loadFile
 
 	private Action findAction(Action[] actions, String key) {
@@ -203,6 +228,7 @@ public class HexEditor {
 		log.addInfo("** [doFileClose] **");
 		System.out.println("** [doFileClose] **");
 		setActivityStates(NO_FILE);
+		closeFile();
 	}// doFileSave
 
 	private void doFileSave() {
@@ -251,6 +277,7 @@ public class HexEditor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}// try
+		activeFile = null;
 	}//closeFile
 
 
