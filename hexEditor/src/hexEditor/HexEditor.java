@@ -312,7 +312,7 @@ public class HexEditor {
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		frameBase.setSize(myPrefs.getInt("Width", 761), myPrefs.getInt("Height", 693));
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
-		splitPaneMajor.setDividerLocation(812);
+		splitPaneMajor.setDividerLocation(725);
 		splitPaneMinor.setDividerLocation(myPrefs.getInt("DividerLocationMinor", 100));
 		currentPath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
@@ -518,6 +518,7 @@ public class HexEditor {
 		frameBase.getContentPane().add(lblFileName, gbc_lblFileName);
 
 		splitPaneMajor = new JSplitPane();
+		splitPaneMajor.setDividerSize(0);
 		splitPaneMajor.setAlignmentX(Component.CENTER_ALIGNMENT);
 		GridBagConstraints gbc_splitPaneMajor = new GridBagConstraints();
 		gbc_splitPaneMajor.insets = new Insets(0, 0, 5, 0);
@@ -651,11 +652,13 @@ public class HexEditor {
 		GridBagLayout gbl_panelMainDisplay = new GridBagLayout();
 		gbl_panelMainDisplay.columnWidths = new int[] { 0, 0 };
 		gbl_panelMainDisplay.rowHeights = new int[] { 0, 0 };
-		gbl_panelMainDisplay.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
+		gbl_panelMainDisplay.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
 		gbl_panelMainDisplay.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
 		panelMainDisplay.setLayout(gbl_panelMainDisplay);
 
 		hexEditDisplay = new HexEditDisplayPanel();
+		hexEditDisplay.setPreferredSize(new Dimension(723, 0));
+		hexEditDisplay.setMinimumSize(new Dimension(723, 0));
 		hexEditDisplay.setMaximumSize(new Dimension(786, 2147483647));
 		GridBagConstraints gbc_hexEditDisplay = new GridBagConstraints();
 		gbc_hexEditDisplay.fill = GridBagConstraints.BOTH;

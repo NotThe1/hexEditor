@@ -86,6 +86,13 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	public int getCurrentLineStart() {
 		return this.currentLineStart;
 	}//getCurrentLineStart
+	
+	public void updateSource(int sourceLocation,byte sourceValue) {
+		source.put(sourceLocation, sourceValue);
+	}//updateSource
+	public void updateAscii(int dot,String value) {
+
+	}//updateAscii
 
 	void fillPane() {
 		if (currentExtent == 0) {
@@ -186,11 +193,11 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		if (status) {
 			textAddr.addCaretListener(adapterHexEditDisplay);
 			textHex.addCaretListener(adapterHexEditDisplay);
-			textAscii.addCaretListener(adapterHexEditDisplay);
+//			textAscii.addCaretListener(adapterHexEditDisplay);
 		} else {
 			textAddr.removeCaretListener(adapterHexEditDisplay);
 			textHex.removeCaretListener(adapterHexEditDisplay);
-			textAscii.removeCaretListener(adapterHexEditDisplay);
+//			textAscii.removeCaretListener(adapterHexEditDisplay);
 		} //
 
 	}// setTextPanesEnabled
@@ -330,8 +337,8 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		//////////////////////////////////////////////////////////////////////////////////////
 
 	public HexEditDisplayPanel() {
-		setPreferredSize(new Dimension(802, 500));
-		setMaximumSize(new Dimension(802, 32767));
+		setPreferredSize(new Dimension(723, 500));
+		setMaximumSize(new Dimension(723, 32767));
 		setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		// setAlignmentY(Component.TOP_ALIGNMENT);
 		// setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -350,13 +357,13 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 		textHex.setNavigationFilter(hexNavigation);
 
-		asciiDoc = textAscii.getStyledDocument();
+//		asciiDoc = textAscii.getStyledDocument();
 //		asciiFilter = new AsciiFilter(this);
 		((AbstractDocument) asciiDoc).setDocumentFilter(asciiFilter);
 		asciiNavigation = new AsciiNavigation();
 		// asciiNavigation = new AsciiNavigation(textAscii);
 
-		textAscii.setNavigationFilter(asciiNavigation);
+//		textAscii.setNavigationFilter(asciiNavigation);
 
 		makeStyles();
 
@@ -367,18 +374,18 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			indexDoc.insertString(0, INDEX_DATA, addressAttributes);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}//try
 	}// appInit
 
 	private void initialize() {
 		// setPreferredSize(new Dimension(0, 0));
-		setMinimumSize(new Dimension(802, 0));
+		setMinimumSize(new Dimension(500, 0));
 		// setMaximumSize(new Dimension(0, 0));
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 92, 300, 170, 17 };
+		gridBagLayout.columnWidths = new int[] { 92, 590, 17 };
 		gridBagLayout.rowHeights = new int[] { 21, 21 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0 };
+		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 0.0 };
 		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
 		setLayout(gridBagLayout);
 
@@ -397,6 +404,9 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		add(lblNewLabel_1, gbc_lblNewLabel_1);
 
 		textIndex = new JTextPane();
+		textIndex.setMaximumSize(new Dimension(410, 2147483647));
+		textIndex.setMinimumSize(new Dimension(410, 0));
+		textIndex.setPreferredSize(new Dimension(410, 0));
 		textIndex.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		textIndex.setFont(new Font("Courier New", Font.BOLD, 16));
 		GridBagConstraints gbc_textIndex = new GridBagConstraints();
@@ -406,14 +416,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		gbc_textIndex.gridy = 0;
 		add(textIndex, gbc_textIndex);
 		textIndex.setFont(new Font("Courier New", Font.BOLD, 16));
-
-		lblCodeType = new JLabel("UTF-8");
-		lblCodeType.setFont(new Font("Courier New", Font.PLAIN, 16));
-		GridBagConstraints gbc_lblCodeType = new GridBagConstraints();
-		gbc_lblCodeType.insets = new Insets(0, 0, 5, 5);
-		gbc_lblCodeType.gridx = 2;
-		gbc_lblCodeType.gridy = 0;
-		add(lblCodeType, gbc_lblCodeType);
 
 		textAddr = new JTextPane();
 		textAddr.setName("textAddr");
@@ -445,28 +447,28 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		add(textHex, gbc_textHex);
 		textHex.setBorder(null);
 
-		textAscii = new JTextPane();
-		textAscii.setName(TEXT_ASCII);
-		textAscii.addCaretListener(adapterHexEditDisplay);
-		textAscii.addMouseWheelListener(adapterHexEditDisplay);
-		textAscii.setMinimumSize(new Dimension(170, 0));
-		textAscii.setPreferredSize(new Dimension(170, 0));
-		textAscii.setBorder(null);
-		textAscii.setFont(new Font("Courier New", Font.BOLD, 16));
-		// textAscii.setText("01234567 89ABCDEF");
-		GridBagConstraints gbc_textASCII = new GridBagConstraints();
-		gbc_textASCII.insets = new Insets(0, 0, 0, 5);
-		gbc_textASCII.fill = GridBagConstraints.BOTH;
-		gbc_textASCII.gridx = 2;
-		gbc_textASCII.gridy = 1;
-		add(textAscii, gbc_textASCII);
+//		textAscii = new JTextPane();
+//		textAscii.setName(TEXT_ASCII);
+//		textAscii.addCaretListener(adapterHexEditDisplay);
+//		textAscii.addMouseWheelListener(adapterHexEditDisplay);
+//		textAscii.setMinimumSize(new Dimension(170, 0));
+//		textAscii.setPreferredSize(new Dimension(170, 0));
+//		textAscii.setBorder(null);
+//		textAscii.setFont(new Font("Courier New", Font.BOLD, 16));
+//		// textAscii.setText("01234567 89ABCDEF");
+//		GridBagConstraints gbc_textASCII = new GridBagConstraints();
+//		gbc_textASCII.insets = new Insets(0, 0, 0, 5);
+//		gbc_textASCII.fill = GridBagConstraints.BOTH;
+//		gbc_textASCII.gridx = 2;
+//		gbc_textASCII.gridy = 1;
+//		add(textAscii, gbc_textASCII);
 
 		scrollBar = new JScrollBar();
 		scrollBar.addAdjustmentListener(adapterHexEditDisplay);
 		scrollBar.addMouseWheelListener(adapterHexEditDisplay);
 		GridBagConstraints gbc_scrollBar = new GridBagConstraints();
 		gbc_scrollBar.fill = GridBagConstraints.VERTICAL;
-		gbc_scrollBar.gridx = 3;
+		gbc_scrollBar.gridx = 2;
 		gbc_scrollBar.gridy = 1;
 		add(scrollBar, gbc_scrollBar);
 	}// initialize
@@ -479,13 +481,12 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private static final String SPACE = " ";
 
 	private static final String TEXT_HEX = "textHex";
-	private static final String TEXT_ASCII = "textAscii";
+//	private static final String TEXT_ASCII = "textAscii";
 	private static final String INDEX_DATA = "00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F";
 
 	private JScrollBar scrollBar;
-	private JLabel lblCodeType;
 	private JTextPane textHex;
-	private JTextPane textAscii;
+//	private JTextPane textAscii;
 	private JLabel lblNewLabel_1;
 	private JTextPane textAddr;
 	private JTextPane textIndex;
@@ -563,11 +564,11 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			highlighterAddress = textAddr.getHighlighter();
 			highlighterSource = ((JTextComponent) caretEvent.getSource()).getHighlighter();
 			if (name.equals(TEXT_HEX)) {
-				highlighterOther = textAscii.getHighlighter();
+//				highlighterOther = textAscii.getHighlighter();
 				otherDotStart = HEUtility.getAsciiDot(dotStart);
 				otherDotEnd = otherDotStart + 1;
 				asciiDot = otherDotStart;
-			} else if (name.equals(TEXT_ASCII)) {
+//			} else if (name.equals(TEXT_ASCII)) {
 				highlighterOther = textHex.getHighlighter();
 				otherDotStart = HEUtility.getHexDot(dotStart);
 				otherDotEnd = otherDotStart + 2;
