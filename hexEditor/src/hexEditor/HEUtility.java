@@ -1,98 +1,147 @@
 package hexEditor;
 
+import java.awt.Color;
+
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+
 /* HexEditor Utility */
 public class HEUtility {
 
-	public static int getAsciiDot(int hexDot) {
-		int position = hexDot % COLUMNS_PER_LINE_HEX; // Calculate the column position
-		boolean pastMidLine = position > MID_LINE_SPACE_HEX ;
-		int lineNumber = hexDot / COLUMNS_PER_LINE_HEX;
-		int rawByteIndex = pastMidLine? position - 1 : position; // >= 
-		int byteIndex = rawByteIndex / CHARS_PER_BYTE_HEX;
+	public static SimpleAttributeSet addressAttributes;
+	public static SimpleAttributeSet dataAttributes;
+	public static SimpleAttributeSet asciiAttributes;
 
-		int otherLineStart = lineNumber * COLUMNS_PER_LINE_ASCII;
-		int otherByteIndex = byteIndex * CHARS_PER_BYTE_ASCII;
+	public static void makeStyles() {
+		SimpleAttributeSet baseAttributes = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(baseAttributes, "Courier New");
+		StyleConstants.setFontSize(baseAttributes, 16);
+
+		addressAttributes = new SimpleAttributeSet(baseAttributes);
+		StyleConstants.setForeground(addressAttributes, Color.GRAY);
+
+		dataAttributes = new SimpleAttributeSet(baseAttributes);
+		StyleConstants.setForeground(dataAttributes, Color.BLACK);
+
+		asciiAttributes = new SimpleAttributeSet(baseAttributes);
+		StyleConstants.setForeground(asciiAttributes, Color.BLUE);
+
+	}// makeStyles1
+
+	public static int getAsciiDot(int hexDot) {
+		int position = hexDot % COLUMNS_PER_LINE; // Calculate the column position
+		boolean pastMidLine = position > MID_LINE_SPACE_DATA;
+		int lineNumber = hexDot / COLUMNS_PER_LINE;
+		int rawByteIndex = pastMidLine ? position - 1 : position; // >=
+		int byteIndex = rawByteIndex / CHARS_PER_BYTE_DATA;
+
+		int lineStart = lineNumber * COLUMNS_PER_LINE;
+
+		int otherByteIndex = (byteIndex * CHARS_PER_BYTE_ASCII) + ASCII_COL_START;
 		otherByteIndex = pastMidLine ? otherByteIndex + 1 : otherByteIndex;// >=
 
-		return otherLineStart + otherByteIndex;
+		return lineStart + otherByteIndex;
+
 	}// getAsciiDot
 
-	public static int getHexDot(int asciiDot) {
-		int position = asciiDot % COLUMNS_PER_LINE_ASCII; // Calculate the column position
-		boolean pastMidLine = position > MID_LINE_SPACE_ASCII;
-		int lineNumber = asciiDot / COLUMNS_PER_LINE_ASCII;
-		int rawByteIndex = pastMidLine? position - 1 : position; // >= 
-		int byteIndex = rawByteIndex / CHARS_PER_BYTE_ASCII;
+	public static int getDataDot(int asciiDot) {
+		int lineNumber = asciiDot / COLUMNS_PER_LINE;
+		int position = asciiDot % COLUMNS_PER_LINE; // Calculate the column position
+		boolean pastMidLine = position > MID_LINE_SPACE_ASCII;		
+		int rawByteIndex = pastMidLine ? position - 1 : position; // >=
+		
+		int byteIndex = (rawByteIndex- ASCII_COL_START)/ CHARS_PER_BYTE_ASCII;
 
-		int otherLineStart = lineNumber * COLUMNS_PER_LINE_HEX;
-		int otherByteIndex = byteIndex * CHARS_PER_BYTE_HEX;
+		int lineStart = lineNumber * COLUMNS_PER_LINE;
+		int otherByteIndex = byteIndex * CHARS_PER_BYTE_DATA;
 		otherByteIndex = pastMidLine ? otherByteIndex + 1 : otherByteIndex;// >=
 
-		return otherLineStart + otherByteIndex;
-	}// getHexDot
+		return lineStart + otherByteIndex;
+	}// getDataDot
 	
+	public static int getDataDotEnd(int startDataDot) {
+		int position = startDataDot % COLUMNS_PER_LINE; // Calculate the column position
+		boolean pastMidSpace = position > MID_LINE_SPACE_DATA;
+		position = pastMidSpace?position-1:position;
+		return (2 -(position % CHARS_PER_BYTE_DATA)) + startDataDot;
+	}//getDataDotEnd
+
 	public static int getAddressDot(int asciiDot) {
-//		int position = asciiDot % COLUMNS_PER_LINE_ASCII; // Calculate the column position
-		int lineNumber = asciiDot / COLUMNS_PER_LINE_ASCII;
-		
-		return  lineNumber * COLUMNS_PER_LINE_ADDR;	
-	}//getAddressDot
-	
+		int lineNumber = asciiDot / COLUMNS_PER_LINE;
+		return lineNumber * COLUMNS_PER_LINE_ADDR;
+	}// getAddressDot
+
 	public static int getIndexDot(int asciiDot) {
-		int position = asciiDot % COLUMNS_PER_LINE_ASCII; // Calculate the column position
+		int position = asciiDot % COLUMNS_PER_LINE; // Calculate the column position
 		boolean pastMidLine = position > MID_LINE_SPACE_ASCII;
-		int rawByteIndex = pastMidLine? position - 1 : position; // >= 
-		int byteIndex =   rawByteIndex / CHARS_PER_BYTE_ASCII;	
+		int rawByteIndex = pastMidLine ? position - 1 : position; // >=
+		int byteIndex = (rawByteIndex - ASCII_COL_START) / CHARS_PER_BYTE_ASCII;
 		int otherByteIndex = byteIndex * CHARS_PER_BYTE_ADDR;
 		otherByteIndex = pastMidLine ? otherByteIndex + 1 : otherByteIndex;// >=
 
-		return  otherByteIndex;
-	}//getIndexDot
-	
+		return otherByteIndex;
+
+	}// getIndexDot
+
 	public static int getAsciiSourceIndex(int asciiDot) {
-		int position = asciiDot % COLUMNS_PER_LINE_ASCII; // Calculate the column position
-		boolean pastMidLine = position > MID_LINE_SPACE_ASCII;
-		int lineNumber = asciiDot / COLUMNS_PER_LINE_ASCII;
-		int rawByteIndex = pastMidLine? position - 1 : position; // >= 
-		int byteIndex = rawByteIndex / CHARS_PER_BYTE_ASCII;
-	
-		return (lineNumber * BYTES_PER_LINE_ASCII) + byteIndex;
-		
-	}//getAsciiSourceIndex
+		// int position = asciiDot % COLUMNS_PER_LINE_ASCII; // Calculate the column position
+		// boolean pastMidLine = position > MID_LINE_SPACE_ASCII;
+		// int lineNumber = asciiDot / COLUMNS_PER_LINE_ASCII;
+		// int rawByteIndex = pastMidLine? position - 1 : position; // >=
+		// int byteIndex = rawByteIndex / CHARS_PER_BYTE_ASCII;
+		//
+		// return (lineNumber * BYTES_PER_LINE_ASCII) + byteIndex;
+		return 0;
+	}// getAsciiSourceIndex
 
 	public static int getHexSourceIndex(int hexDot) {
-		int position = hexDot % COLUMNS_PER_LINE_HEX; // Calculate the column position
-		boolean pastMidLine = position > MID_LINE_SPACE_HEX;
-		int lineNumber = hexDot / COLUMNS_PER_LINE_HEX;
-		int rawByteIndex = pastMidLine? position - 1 : position; // >= 
-		int byteIndex = rawByteIndex / CHARS_PER_BYTE_HEX;
-	
-		return (lineNumber * BYTES_PER_LINE_HEX) + byteIndex;
-		
-	}//getAsciiSourceIndex
+		// int position = hexDot % COLUMNS_PER_LINE_HEX; // Calculate the column position
+		// boolean pastMidLine = position > MID_LINE_SPACE_HEX;
+		// int lineNumber = hexDot / COLUMNS_PER_LINE_HEX;
+		// int rawByteIndex = pastMidLine? position - 1 : position; // >=
+		// int byteIndex = rawByteIndex / CHARS_PER_BYTE_HEX;
+		//
+		// return (lineNumber * BYTES_PER_LINE_HEX) + byteIndex;
+		return 0;
+	}// getAsciiSourceIndex
 
 	/* Constants */
-	
+
+	public static final String UNPRINTABLE = ".";
+
 	/* Hex Text Constants */
-	public static final int BYTES_PER_LINE_HEX = 16; // Number of bytes from source file to display on each line
-	public static final int CHARS_PER_BYTE_HEX = 3; // Number of chars used to display on each byte on a line
-	public static final int CHARS_PER_LINE_HEX = (BYTES_PER_LINE_HEX * CHARS_PER_BYTE_HEX); // Number of chars displayed in the Hex text pane
-	public static final int COLUMNS_PER_LINE_HEX = CHARS_PER_LINE_HEX + 2; // actual length of the line< includes /n/r
-	public static final int MID_LINE_SPACE_HEX = (BYTES_PER_LINE_HEX / 2) * CHARS_PER_BYTE_HEX ; // place where extra space is placed on the line
-//	public static final int MID_LINE_SPACE_HEX = (CHARS_PER_LINE_HEX / 2); // place where extra space is placed on the line
+	public static final int BYTES_PER_LINE = 16; // Number of bytes from source file to display on each line
+	public static final int CHARS_PER_BYTE_DATA = 3; // Number of chars used to display on each byte on a line
+	public static final int MID_LINE_SPACE_DATA = (BYTES_PER_LINE / 2) * CHARS_PER_BYTE_DATA;
+	public static final int LAST_COLUMN_DATA = (BYTES_PER_LINE * CHARS_PER_BYTE_DATA + 1) - 1;
+
+	// public static final int CHARS_PER_LINE_HEX = (BYTES_PER_LINE * CHARS_PER_BYTE_DATA); // Number of chars displayed
+	// in the Hex text pane
+	// public static final int COLUMNS_PER_LINE_HEX = CHARS_PER_LINE_HEX + 2; // actual length of the line< includes
+	// /n/r
 
 	/* Ascii Text Constants */
-	public static final int BYTES_PER_LINE_ASCII = 16; // Number of bytes from source file to display on each line
-	public static final int CHARS_PER_BYTE_ASCII = 1; // Number of chars used  to display on each byte on a line
-	public static final int CHARS_PER_LINE_ASCII = BYTES_PER_LINE_ASCII + 1; // Number of chars displayed in the Ascii text pane
-	public static final int COLUMNS_PER_LINE_ASCII = CHARS_PER_LINE_ASCII + 2; // actual length of the line< includes /n/r
-	public static final int MID_LINE_SPACE_ASCII = (BYTES_PER_LINE_ASCII / 2) * CHARS_PER_BYTE_ASCII; // place where extra space is placed on the line
-//	public static final int MID_LINE_SPACE_ASCII = BYTES_PER_LINE_ASCII / 2; // place where extra space is placed on the line
-	
+	public static final int ASCII_COL_START = LAST_COLUMN_DATA + 1;
+	public static final int CHARS_PER_BYTE_ASCII = 1; // Number of chars used to display on each byte on a line
+	public static final int MID_LINE_SPACE_ASCII = ((BYTES_PER_LINE / 2) * CHARS_PER_BYTE_ASCII) + ASCII_COL_START;
+	public static final int LAST_COLUMN_ASCII = (BYTES_PER_LINE * CHARS_PER_BYTE_ASCII + 1) + ASCII_COL_START;
+
+	public static final int COLUMNS_PER_LINE = LAST_COLUMN_ASCII + 2;// CR,LF
+
+	// public static final int BYTES_PER_LINE_ASCII = 16; // Number of bytes from source file to display on each line
+	// public static final int CHARS_PER_LINE_ASCII = BYTES_PER_LINE_ASCII + 1; // Number of chars displayed in the
+	// Ascii text pane
+	// public static final int COLUMNS_PER_LINE_ASCII = CHARS_PER_LINE_ASCII + 2; // actual length of the line< includes
+	// /n/r
+	// public static final int MID_LINE_SPACE_ASCII = BYTES_PER_LINE_ASCII / 2; // place where extra space is placed on
+	// the line
+
 	/* Address Text Constants */
 	public static final int BYTES_PER_LINE_ADDR = 8; // Number of bytes from source file to display on each line
-	public static final int CHARS_PER_BYTE_ADDR = 3; // Number of chars used  to display on each byte on a line
-	public static final int CHARS_PER_LINE_ADDR = (BYTES_PER_LINE_ADDR  ) + 1; // Number of chars displayed in the Address text pane
+	public static final int CHARS_PER_BYTE_ADDR = 3; // Number of chars used to display on each byte on a line
+	public static final int CHARS_PER_LINE_ADDR = (BYTES_PER_LINE_ADDR) + 1; // Number of chars displayed in the Address
+																				// text pane
 	public static final int COLUMNS_PER_LINE_ADDR = CHARS_PER_LINE_ADDR + 2; // actual length of the line< includes /n/r
-//	public static final int MID_LINE_SPACE_ADDR = BYTES_PER_LINE_ADDR / 2; // place where extra space is placed on the line
+	// public static final int MID_LINE_SPACE_ADDR = BYTES_PER_LINE_ADDR / 2; // place where extra space is placed on
+	// the line
 }// Class TextCell

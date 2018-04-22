@@ -1,10 +1,8 @@
 package hexEditor;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -12,19 +10,13 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -45,7 +37,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.UndoableEditEvent;
@@ -65,10 +56,9 @@ public class HexEditor {
 
 	File activeFile;
 	String currentPath;
-	
+
 	private FileChannel fileChannel;
 	private MappedByteBuffer fileMap;
-
 
 	/**
 	 * Launch the application.
@@ -168,37 +158,37 @@ public class HexEditor {
 		log.addInfo("Loading File -> " + sourceFile.toString());
 		setActivityStates(FILE_ACTIVE);
 		closeFile();
-		
+
 		long sourceLength = sourceFile.length();
-		if (sourceLength >= Integer.MAX_VALUE){
+		if (sourceLength >= Integer.MAX_VALUE) {
 			Toolkit.getDefaultToolkit().beep();
 			String message = String.format("[HexEditPanelFile : loadData] file too large %,d%n", sourceLength);
 			log.addWarning(message);
 			return;
-		}//if
-		
-		try(RandomAccessFile raf = new RandomAccessFile(sourceFile, "rw")) {
+		} // if
+
+		try (RandomAccessFile raf = new RandomAccessFile(sourceFile, "rw")) {
 			fileChannel = raf.getChannel();
 			fileMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileChannel.size());// this.totalBytesOnDisk);
 			fileChannel.close();
 		} catch (IOException ioe) {
 			Toolkit.getDefaultToolkit().beep();
 			log.addError("[loadFile]: " + ioe.getMessage());
-		}//try
+		} // try
 
 		hexEditDisplay.setData(fileMap);
 		hexEditDisplay.run();
-	
+
 	}// loadFile
 
-//	private Action findAction(Action[] actions, String key) {
-//		for (Action action : actions) {
-//			if (action.getValue(Action.NAME).equals(key)) {
-//				return action;
-//			} // if
-//		} // for
-//		return null;
-//	}// findAction
+	// private Action findAction(Action[] actions, String key) {
+	// for (Action action : actions) {
+	// if (action.getValue(Action.NAME).equals(key)) {
+	// return action;
+	// } // if
+	// } // for
+	// return null;
+	// }// findAction
 
 	// ---------------------------------------------------------
 
@@ -262,24 +252,22 @@ public class HexEditor {
 		appClose();
 		System.exit(0);
 	}// doFileExit
-	
-	public void closeFile(){
+
+	public void closeFile() {
 		try {
-			if(fileMap != null) {
-				fileMap =null;
-			}//if 
-			
+			if (fileMap != null) {
+				fileMap = null;
+			} // if
+
 			if (fileChannel != null) {
 				fileChannel.close();
 				fileChannel = null;
-			} //if
+			} // if
 		} catch (IOException e) {
 			e.printStackTrace();
-		}// try
+		} // try
 		activeFile = null;
-	}//closeFile
-
-
+	}// closeFile
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	private void appClose() {
@@ -290,20 +278,21 @@ public class HexEditor {
 		Point point = frameBase.getLocation();
 		myPrefs.putInt("LocX", point.x);
 		myPrefs.putInt("LocY", point.y);
-		myPrefs.putInt("DividerLocationMajor", splitPaneMajor.getDividerLocation());
-		myPrefs.putInt("DividerLocationMinor", splitPaneMinor.getDividerLocation());
+//		myPrefs.putInt("DividerLocationMajor", splitPaneMajor.getDividerLocation());
+//		myPrefs.putInt("DividerLocationMinor", splitPaneMinor.getDividerLocation());
 		myPrefs.put("CurrentPath", currentPath);
 		MenuUtility.saveRecentFileList(myPrefs, mnuFile);
 		myPrefs = null;
 		if (activeFile != null) {
 			doFileClose();
 		} // if
-		
+
 		closeFile();
-//		System.out.println("Divider Location = " + splitPaneMajor.getDividerLocation());
+		// System.out.println("Divider Location = " + splitPaneMajor.getDividerLocation());
 	}// appClose
 
 	private void appInit() {
+		log.setDoc(textLog.getStyledDocument());
 		/* setup action for standard edit behaviors */
 		initActions();
 
@@ -312,13 +301,9 @@ public class HexEditor {
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		frameBase.setSize(myPrefs.getInt("Width", 761), myPrefs.getInt("Height", 693));
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
-		splitPaneMajor.setDividerLocation(725);
-		splitPaneMinor.setDividerLocation(myPrefs.getInt("DividerLocationMinor", 100));
 		currentPath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
 		myPrefs = null;
-
-		log.setDoc(textPaneLog.getStyledDocument());
 
 		clearFile();
 		log.addInfo("Starting .........");
@@ -362,15 +347,7 @@ public class HexEditor {
 				} catch (CannotRedoException e) {
 				} // try
 			}// actionPerformed
-		};// new AbstractAction
-
-		// Bind the undo action to ctl-Z
-		textPaneLog.getActionMap().put("Undo", actionUndo);
-		textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
-
-		// Bind the undo action to ctl-y
-		textPaneLog.getActionMap().put("Redo", actionRedo);
-		textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
+		};
 
 		// textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control M"), "cut");
 
@@ -517,154 +494,79 @@ public class HexEditor {
 		gbc_lblFileName.gridy = 1;
 		frameBase.getContentPane().add(lblFileName, gbc_lblFileName);
 
-		splitPaneMajor = new JSplitPane();
-		splitPaneMajor.setDividerSize(0);
-		splitPaneMajor.setAlignmentX(Component.CENTER_ALIGNMENT);
-		GridBagConstraints gbc_splitPaneMajor = new GridBagConstraints();
-		gbc_splitPaneMajor.insets = new Insets(0, 0, 5, 0);
-		gbc_splitPaneMajor.fill = GridBagConstraints.BOTH;
-		gbc_splitPaneMajor.gridx = 0;
-		gbc_splitPaneMajor.gridy = 2;
-		frameBase.getContentPane().add(splitPaneMajor, gbc_splitPaneMajor);
-
-		splitPaneMinor = new JSplitPane();
-		splitPaneMinor.setOneTouchExpandable(true);
-		splitPaneMinor.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		splitPaneMajor.setRightComponent(splitPaneMinor);
-
-		panelTop = new JPanel();
-		splitPaneMinor.setLeftComponent(panelTop);
-		GridBagLayout gbl_panelTop = new GridBagLayout();
-		gbl_panelTop.columnWidths = new int[] { 0, 0, 0 };
-		gbl_panelTop.rowHeights = new int[] { 0, 0, 0 };
-		gbl_panelTop.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_panelTop.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
-		panelTop.setLayout(gbl_panelTop);
-
-		btnSend = new JButton("Test button - Write");
-		btnSend.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				byte[] values = new byte[256];
-				// ArrayList<Byte> values = new ArrayList<>();
-				for (int i = 0; i < 128; i++) {
-					values[i] = ((byte) i);
-				} // for
-				for (int i = -128; i < 0; i++) {
-					values[i + 256] = ((byte) i);
-				} // for
-					hexEditDisplay.setData(values);
-					hexEditDisplay.run();
-				// java.net.URL url = HexEditor.class.getResource("resources/test.bin");;
-				String fileName = "C:\\Users\\admin\\git\\hexEditor\\hexEditor\\src\\resources\\test.bin";
-				try (FileOutputStream stream = new FileOutputStream(fileName)) {
-					stream.write(values);	//256
-					stream.write(values);	//512
-					stream.write(values);
-					stream.write(values);	//1024
-					stream.write(values);
-					stream.write(values);
-					stream.write(values);
-					stream.write(values);	//2048
-
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} // try
-					
-//				for (byte value : values) {
-//					log.addInfo(String.format("value = %1$d, [%1$02X]", value));
-//				} // for
-					
-			}// actionPerformed
-		});
-		GridBagConstraints gbc_btnSend = new GridBagConstraints();
-		gbc_btnSend.insets = new Insets(0, 0, 5, 5);
-		gbc_btnSend.gridx = 0;
-		gbc_btnSend.gridy = 0;
-		panelTop.add(btnSend, gbc_btnSend);
-
-		testInput = new JTextField("C:\\Users\\admin\\git\\hexEditor\\hexEditor\\src\\resources\\test.bin");
-		testInput.setToolTipText("Double click to pick a different file");
-		testInput.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent mouseEvent) {
-				if (mouseEvent.getClickCount() < 2) {
-					return;
-				}//
-				JFileChooser chooser = new JFileChooser(currentPath);
-				if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
-					return; // just get out
-				} // if open
-				testInput.setText(chooser.getSelectedFile().getAbsolutePath());
-			}//mouseClicked
-		});
-		GridBagConstraints gbc_testInput = new GridBagConstraints();
-		gbc_testInput.insets = new Insets(0, 0, 5, 0);
-		gbc_testInput.fill = GridBagConstraints.HORIZONTAL;
-		gbc_testInput.gridx = 1;
-		gbc_testInput.gridy = 0;
-		panelTop.add(testInput, gbc_testInput);
-		testInput.setColumns(10);
-		
-		btnNewButton = new JButton("Test button - read");
-		btnNewButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					byte[] values = new byte[2048];
-					Path in = Paths.get(testInput.getText());
-					 values = Files.readAllBytes(in);
-					hexEditDisplay.setData(values);
-					hexEditDisplay.run();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}//try
-				
-				log.addError("File is: " + testInput.getText());
-
-			}//actionPerformed
-		});
-		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-		gbc_btnNewButton.insets = new Insets(0, 0, 0, 5);
-		gbc_btnNewButton.gridx = 0;
-		gbc_btnNewButton.gridy = 1;
-		panelTop.add(btnNewButton, gbc_btnNewButton);
-
-		scrollPaneLog = new JScrollPane();
-		splitPaneMinor.setRightComponent(scrollPaneLog);
-
-		textPaneLog = new JTextPane();
-		textPaneLog.setEditable(false);
-		scrollPaneLog.setViewportView(textPaneLog);
-
-		lblNewLabel = new JLabel("Application Log");
-		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel.setFont(new Font("Times New Roman", Font.BOLD, 16));
-		scrollPaneLog.setColumnHeaderView(lblNewLabel);
-		splitPaneMinor.setDividerLocation(100);
-
-		panelMainDisplay = new JPanel();
-		panelMainDisplay.setPreferredSize(new Dimension(0, 0));
-		panelMainDisplay.setMinimumSize(new Dimension(804, 0));
-		panelMainDisplay.setMaximumSize(new Dimension(0, 0));
-		panelMainDisplay.setBackground(Color.GRAY);
-		splitPaneMajor.setLeftComponent(panelMainDisplay);
-		GridBagLayout gbl_panelMainDisplay = new GridBagLayout();
-		gbl_panelMainDisplay.columnWidths = new int[] { 0, 0 };
-		gbl_panelMainDisplay.rowHeights = new int[] { 0, 0 };
-		gbl_panelMainDisplay.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
-		gbl_panelMainDisplay.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
-		panelMainDisplay.setLayout(gbl_panelMainDisplay);
+		panelMain = new JPanel();
+		GridBagConstraints gbc_panelMain = new GridBagConstraints();
+		gbc_panelMain.insets = new Insets(0, 0, 5, 0);
+		gbc_panelMain.fill = GridBagConstraints.BOTH;
+		gbc_panelMain.gridx = 0;
+		gbc_panelMain.gridy = 2;
+		frameBase.getContentPane().add(panelMain, gbc_panelMain);
+		GridBagLayout gbl_panelMain = new GridBagLayout();
+		gbl_panelMain.columnWidths = new int[] { 790, 0, 0 };
+		gbl_panelMain.rowHeights = new int[] { 0, 0, 0 };
+		gbl_panelMain.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panelMain.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
+		panelMain.setLayout(gbl_panelMain);
 
 		hexEditDisplay = new HexEditDisplayPanel();
-		hexEditDisplay.setPreferredSize(new Dimension(723, 0));
-		hexEditDisplay.setMinimumSize(new Dimension(723, 0));
-		hexEditDisplay.setMaximumSize(new Dimension(786, 2147483647));
+		hexEditDisplay.setPreferredSize(new Dimension(780, 0));
+		hexEditDisplay.setMinimumSize(new Dimension(780, 0));
+		hexEditDisplay.setMaximumSize(new Dimension(780, 2147483647));
 		GridBagConstraints gbc_hexEditDisplay = new GridBagConstraints();
+		gbc_hexEditDisplay.insets = new Insets(0, 0, 5, 5);
 		gbc_hexEditDisplay.fill = GridBagConstraints.BOTH;
 		gbc_hexEditDisplay.gridx = 0;
 		gbc_hexEditDisplay.gridy = 0;
-		panelMainDisplay.add(hexEditDisplay, gbc_hexEditDisplay);
+		panelMain.add(hexEditDisplay, gbc_hexEditDisplay);
+		
+		splitPane = new JSplitPane();
+		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		GridBagConstraints gbc_splitPane = new GridBagConstraints();
+		gbc_splitPane.insets = new Insets(0, 0, 5, 0);
+		gbc_splitPane.fill = GridBagConstraints.BOTH;
+		gbc_splitPane.gridx = 1;
+		gbc_splitPane.gridy = 0;
+		panelMain.add(splitPane, gbc_splitPane);
+		
+		panel = new JPanel();
+		splitPane.setLeftComponent(panel);
+		GridBagLayout gbl_panel = new GridBagLayout();
+		gbl_panel.columnWidths = new int[]{0, 0, 0};
+		gbl_panel.rowHeights = new int[]{0, 0, 0, 0};
+		gbl_panel.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panel.setLayout(gbl_panel);
+		
+		button = new JButton("Test button - Write");
+		GridBagConstraints gbc_button = new GridBagConstraints();
+		gbc_button.insets = new Insets(0, 0, 5, 5);
+		gbc_button.gridx = 0;
+		gbc_button.gridy = 0;
+		panel.add(button, gbc_button);
+		
+		textField = new JTextField("C:\\Users\\admin\\git\\hexEditor\\hexEditor\\src\\resources\\test.bin");
+		textField.setToolTipText("Double click to pick a different file");
+		textField.setColumns(10);
+		GridBagConstraints gbc_textField = new GridBagConstraints();
+		gbc_textField.insets = new Insets(0, 0, 5, 0);
+		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField.gridx = 1;
+		gbc_textField.gridy = 0;
+		panel.add(textField, gbc_textField);
+		
+		button_1 = new JButton("Test button - read");
+		GridBagConstraints gbc_button_1 = new GridBagConstraints();
+		gbc_button_1.insets = new Insets(0, 0, 0, 5);
+		gbc_button_1.gridx = 0;
+		gbc_button_1.gridy = 2;
+		panel.add(button_1, gbc_button_1);
+		
+		scrollPane = new JScrollPane();
+		splitPane.setRightComponent(scrollPane);
+		
+		textLog = new JTextPane();
+		scrollPane.setViewportView(textLog);
+		splitPane.setDividerLocation(250);
 
 		JPanel panelStatus = new JPanel();
 		panelStatus.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -825,8 +727,6 @@ public class HexEditor {
 
 	//////////////////////////////////////////////////////////////////////////
 	private JFrame frameBase;
-
-	private JSplitPane splitPaneMajor;
 	private JMenuItem mnuFileNew;
 	private JButton btnFileNew;
 	private JLabel lblFileName;
@@ -848,11 +748,6 @@ public class HexEditor {
 	private JButton btnEditRedo;
 	private JMenuItem mnuRemoveRecentFiles;
 	private JMenu mnuFile;
-	private JSplitPane splitPaneMinor;
-	private JPanel panelTop;
-	private JScrollPane scrollPaneLog;
-	private JTextPane textPaneLog;
-	private JLabel lblNewLabel;
 	private JMenuItem mnuFileClose;
 	private JSeparator separator_1;
 	private JButton btnFileClose;
@@ -863,11 +758,15 @@ public class HexEditor {
 	private JMenuItem mnuEditUndo;
 	private JMenuItem mnuEditRedo;
 	private JMenuItem mnuEditCut;
-	private JPanel panelMainDisplay;
 	private HexEditDisplayPanel hexEditDisplay;
-	private JButton btnSend;
-	private JTextField testInput;
-	private JButton btnNewButton;
+	private JPanel panelMain;
+	private JSplitPane splitPane;
+	private JPanel panel;
+	private JButton button;
+	private JTextField textField;
+	private JButton button_1;
+	private JScrollPane scrollPane;
+	private JTextPane textLog;
 	//////////////////////////////////////////////////////////////////////////
 
 	class ApplicationAdapter implements ActionListener {// , ListSelectionListener
