@@ -1,7 +1,6 @@
 package hexEditor;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -41,24 +40,17 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private AdapterHexEditDisplay adapterHexEditDisplay = new AdapterHexEditDisplay();
 	protected ByteBuffer source;
 	protected int dataSize;
-	private int currentAddress;
-	private int bias;
-	private int dataIndex;
 
 	private int currentMax;
 	private int currentLineStart;
 	private int currentExtent;
 
-	protected StyledDocument addrDoc;// = new DefaultStyledDocument();
-	protected StyledDocument indexDoc;// = new DefaultStyledDocument();
+	protected StyledDocument addrDoc;
+	protected StyledDocument indexDoc;
 
-	protected StyledDocument hexDoc;// = new DefaultStyledDocument();
+	protected StyledDocument hexDoc;
 	protected HexFilter hexFilter = new HexFilter(this);
-	protected HexNavigation hexNavigation;// = new HexDocumentNavigation();
-
-//	protected StyledDocument asciiDoc = new DefaultStyledDocument();
-//	protected AsciiFilter asciiFilter = new AsciiFilter(this);
-//	protected AsciiNavigation asciiNavigation; // = new AsciiNavigation();
+	protected HexNavigation hexNavigation;
 
 	protected SortedMap<Integer, Byte> changes;
 
@@ -66,61 +58,56 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private SimpleAttributeSet dataAttributes;
 	private SimpleAttributeSet asciiAttributes;
 
-	// public void test() {
-
-	// }// test
-
 	@Override
 	public void run() {
-//		System.out.println("[HexEditDisplayPanel.run]");
+		// System.out.println("[HexEditDisplayPanel.run]");
 		clearAllDocs();
-		bias = 0;
-		dataIndex = 0;
-		currentAddress = 0;
 		currentLineStart = 0;
 		setUpScrollBar();
-
 		fillPane();
 	}// run
-	
+
 	public int getCurrentLineStart() {
 		return this.currentLineStart;
-	}//getCurrentLineStart
-	
-	public void updateSource(int sourceLocation,byte sourceValue) {
-		source.put(sourceLocation, sourceValue);
-	}//updateSource
-	public void updateAscii(int dot,String value) {
+	}// getCurrentLineStart
 
-	}//updateAscii
+	public void updateValue(int dot, byte newValue) {
+		int location = HEUtility.getSourceIndex(dot) + currentLineStart;
+
+//		int location = offset + currentLineStart;
+		log.addInfo(String.format("[HexEditDisplayPanel.updateData] newValue %02X, offset = %04X", newValue, location));
+		source.put(location, newValue);
+	}// updateSource
+
+
+	public void setDot(int position) {
+		textHex.setCaretPosition(position);
+	}// setDot
 
 	void fillPane() {
-//		System.out.println("[HexEditDisplayPanel.fillPane]");
+		// System.out.println("[HexEditDisplayPanel.fillPane]");
 		if (currentExtent == 0) {
 			return;
 		} // if nothing to display
 
-		// clearFilters(); // suspend doc filter
-
 		setTextPanesCaretListeners(false);
 		clearAllDocs();
 
-		int sourceIndex = currentLineStart ;// address to display
-
+		int sourceIndex = currentLineStart;// address to display
 		byte[] activeLine = new byte[LINE_SIZE];
-		
-		String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X%n",
-				currentExtent, currentMax,currentLineStart);
+
+		String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X%n", currentExtent,
+				currentMax, currentLineStart);
 		log.addInfo(message);
-		
-		int linesToDisplay = Math.min(currentExtent, currentMax - (currentLineStart/LINE_SIZE));
+
+		int linesToDisplay = Math.min(currentExtent, currentMax - (currentLineStart / LINE_SIZE));
 
 		int bytesToRead = LINE_SIZE;
 		source.position(sourceIndex);
 		for (int i = 0; i < linesToDisplay; i++) {
 			source.get(activeLine, 0, bytesToRead);
 			byte[] processedData = applyChanges(activeLine, bytesToRead, sourceIndex);
-			processLine(processedData, bytesToRead, sourceIndex);
+			addHexLineToDocument(sourceIndex, processedData);
 			sourceIndex += bytesToRead;
 			if (bytesToRead < LINE_SIZE) {
 				// leave the byte count for the last sector set in bytesToRead
@@ -132,38 +119,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				break;
 			} // if
 		} // for
-			// restoreFilters();
-			// hexNavigationFilter.setLastLine(bytesToRead, linesToDisplay - 1);
-		setTextPanesCaretListeners(true);
 
+		setTextPanesCaretListeners(true);
 		textHex.setCaretPosition(0);
 	}// fillPane
-
-	private void processLine(byte[] rawData, int bytesRead, int bufferAddress) {//
-		addHexLineToDocument(bufferAddress, bias, rawData);
-//		addAsciiLineToDocument(rawData);
-
-		// StringBuilder sbData = new StringBuilder();
-		// for (int i = 0; i < bytesRead; i++) {
-		// if ((i % 8) == 0) {
-		// sbData.append(SPACE);
-		// } // if data extra space
-		// sbData.append(String.format(hexCharacterFormat, rawData[i]));
-		// } // for
-		//
-		// String bufferAddressStr = String.format(addressFormat, bufferAddress);
-		// String dataStr = String.format(dataFormat, sbData.toString());
-		// String asciiStr = getASCII(rawData, bytesRead);
-		//
-		// try {
-		// doc.insertString(doc.getLength(), bufferAddressStr, addressAttributes);
-		// doc.insertString(doc.getLength(), dataStr, dataAttributes);
-		// doc.insertString(doc.getLength(), asciiStr, asciiAttributes);
-		// } catch (BadLocationException e) {
-		// e.printStackTrace();
-		// } // try
-		// return bufferAddress + bytesRead;
-	}// processLine
 
 	protected byte[] applyChanges(byte[] rawData, int bytesRead, int bufferAddress) {
 		// byte[] ans = rawData.clone();
@@ -184,7 +143,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		try {
 			addrDoc.remove(0, addrDoc.getLength());
 			hexDoc.remove(0, hexDoc.getLength());
-//			asciiDoc.remove(0, asciiDoc.getLength());
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		} // try
@@ -197,35 +155,19 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		if (status) {
 			textAddr.addCaretListener(adapterHexEditDisplay);
 			textHex.addCaretListener(adapterHexEditDisplay);
-//			textAscii.addCaretListener(adapterHexEditDisplay);
 		} else {
 			textAddr.removeCaretListener(adapterHexEditDisplay);
 			textHex.removeCaretListener(adapterHexEditDisplay);
-//			textAscii.removeCaretListener(adapterHexEditDisplay);
 		} //
 
 	}// setTextPanesEnabled
 
-	private void clearDoc(StyledDocument doc) {
-		try {
-			doc.remove(0, doc.getLength());
-		} catch (BadLocationException e) {
-			e.printStackTrace();
-		} // try
-	}// clearDoc
-
-//	private void addAsciiLineToDocument(byte[] data) {
-//		String asciiText = getAscii(data);
-//
-//	}// addLineToDocument
-
-	private void addHexLineToDocument(int currentAddress, int bias, byte[] data) {
-		String strAddress = getAddress(currentAddress, bias);
+	private void addHexLineToDocument(int currentAddress, byte[] data) {
+		String strAddress = getAddress(currentAddress);
 		String strData = getData(data);
 		String strAscii = getAscii(data);
 
 		try {
-			// hexDoc.remove(0, hexDoc.getLength());
 			addrDoc.insertString(addrDoc.getLength(), strAddress, addressAttributes);
 			addrDoc.insertString(addrDoc.getLength(), System.lineSeparator(), null);
 
@@ -233,21 +175,21 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			hexDoc.insertString(hexDoc.getLength(), strAscii, asciiAttributes);
 			hexDoc.insertString(hexDoc.getLength(), System.lineSeparator(), null);
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
+			log.addError("Bad Insert - line at :" + strAddress);
 			e.printStackTrace();
-		}
+		} // try
 
 	}// addLineToDocument
 
-	private String getAddress(int currentAddress, int bias) {
-		return String.format(FORMAT_ADDR, currentAddress + bias);
+	private String getAddress(int currentAddress) {
+		return String.format(FORMAT_ADDR, currentAddress);
 	}// getAddress
 
 	private String getData(byte[] data) {
 		return String.format(FORMAT_DATA, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
 				data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
 	}// getData
-	
+
 	private String getAscii(byte[] data) {
 		StringBuilder sb = new StringBuilder();
 
@@ -263,14 +205,9 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				sb.append(UNPRINTABLE);
 			} // if printable
 		} // for
-//		sb.append(System.lineSeparator());
 		return sb.toString();
-//		try {
-//			asciiDoc.insertString(asciiDoc.getLength(), strData, asciiAttributes);
-//		} catch (BadLocationException e) {
-//			e.printStackTrace();
-//		} // try	}//getAscii
-	}//getAscii
+	}// getAscii
+
 	public void setData(ByteBuffer data) {
 		source = data.duplicate();
 		// source = buffer.
@@ -349,7 +286,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	public HexEditDisplayPanel() {
 		setPreferredSize(new Dimension(790, 500));
 		setMaximumSize(new Dimension(790, 32767));
-		setMinimumSize(new Dimension(790,0));
+		setMinimumSize(new Dimension(790, 0));
 		setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		// setAlignmentY(Component.TOP_ALIGNMENT);
 		// setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -360,21 +297,12 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private void appInit() {
 
 		hexDoc = textHex.getStyledDocument();
-//		hexFilter = new HexFilter(this);
 
 		((AbstractDocument) hexDoc).setDocumentFilter(hexFilter);
 		hexNavigation = new HexNavigation();
 		textHex.getCaret().setVisible(false);
 
 		textHex.setNavigationFilter(hexNavigation);
-
-//		asciiDoc = textAscii.getStyledDocument();
-//		asciiFilter = new AsciiFilter(this);
-//		((AbstractDocument) asciiDoc).setDocumentFilter(asciiFilter);
-//		asciiNavigation = new AsciiNavigation();
-		// asciiNavigation = new AsciiNavigation(textAscii);
-
-//		textAscii.setNavigationFilter(asciiNavigation);
 
 		makeStyles();
 
@@ -385,13 +313,11 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			indexDoc.insertString(0, INDEX_DATA, addressAttributes);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}//try
+		} // try
 	}// appInit
 
 	private void initialize() {
-		// setPreferredSize(new Dimension(0, 0));
 		setMinimumSize(new Dimension(500, 0));
-		// setMaximumSize(new Dimension(0, 0));
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 92, 750, 17 };
@@ -400,20 +326,20 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
 		setLayout(gridBagLayout);
 
-		lblNewLabel_1 = new JLabel("00000000:");
-		lblNewLabel_1.setVisible(false);
-		lblNewLabel_1.setPreferredSize(new Dimension(92, 14));
-		lblNewLabel_1.setMinimumSize(new Dimension(92, 14));
-		lblNewLabel_1.setMaximumSize(new Dimension(92, 14));
-		lblNewLabel_1.setForeground(Color.RED);
-		lblNewLabel_1.setFont(new Font("Courier New", Font.BOLD, 16));
-		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
-		gbc_lblNewLabel_1.fill = GridBagConstraints.VERTICAL;
-		gbc_lblNewLabel_1.anchor = GridBagConstraints.WEST;
-		gbc_lblNewLabel_1.insets = new Insets(0, 0, 5, 5);
-		gbc_lblNewLabel_1.gridx = 0;
-		gbc_lblNewLabel_1.gridy = 0;
-		add(lblNewLabel_1, gbc_lblNewLabel_1);
+		lblAddress = new JLabel("00000000");
+		lblAddress.setVisible(true);
+		lblAddress.setPreferredSize(new Dimension(92, 14));
+		lblAddress.setMinimumSize(new Dimension(92, 14));
+		lblAddress.setMaximumSize(new Dimension(92, 14));
+		lblAddress.setForeground(Color.RED);
+		lblAddress.setFont(new Font("Courier New", Font.BOLD, 16));
+		GridBagConstraints gbc_lblAddress = new GridBagConstraints();
+		gbc_lblAddress.fill = GridBagConstraints.VERTICAL;
+		gbc_lblAddress.anchor = GridBagConstraints.WEST;
+		gbc_lblAddress.insets = new Insets(0, 0, 5, 5);
+		gbc_lblAddress.gridx = 0;
+		gbc_lblAddress.gridy = 0;
+		add(lblAddress, gbc_lblAddress);
 
 		textIndex = new JTextPane();
 		textIndex.setEditable(false);
@@ -461,22 +387,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		add(textHex, gbc_textHex);
 		textHex.setBorder(null);
 
-//		textAscii = new JTextPane();
-//		textAscii.setName(TEXT_ASCII);
-//		textAscii.addCaretListener(adapterHexEditDisplay);
-//		textAscii.addMouseWheelListener(adapterHexEditDisplay);
-//		textAscii.setMinimumSize(new Dimension(170, 0));
-//		textAscii.setPreferredSize(new Dimension(170, 0));
-//		textAscii.setBorder(null);
-//		textAscii.setFont(new Font("Courier New", Font.BOLD, 16));
-//		// textAscii.setText("01234567 89ABCDEF");
-//		GridBagConstraints gbc_textASCII = new GridBagConstraints();
-//		gbc_textASCII.insets = new Insets(0, 0, 0, 5);
-//		gbc_textASCII.fill = GridBagConstraints.BOTH;
-//		gbc_textASCII.gridx = 2;
-//		gbc_textASCII.gridy = 1;
-//		add(textAscii, gbc_textASCII);
-
 		scrollBar = new JScrollBar();
 		scrollBar.addAdjustmentListener(adapterHexEditDisplay);
 		scrollBar.addMouseWheelListener(adapterHexEditDisplay);
@@ -499,13 +409,12 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private static final String SPACE = " ";
 
 	private static final String TEXT_HEX = "textHex";
-//	private static final String TEXT_ASCII = "textAscii";
+	// private static final String TEXT_ASCII = "textAscii";
 	private static final String INDEX_DATA = "00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F";
 
 	private JScrollBar scrollBar;
 	private JTextPane textHex;
-//	private JTextPane textAscii;
-	private JLabel lblNewLabel_1;
+	private JLabel lblAddress;
 	private JTextPane textAddr;
 	private JTextPane textIndex;
 
@@ -536,31 +445,27 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 		@Override
 		public void componentHidden(ComponentEvent componentEvent) {
-			// TODO Auto-generated method stub
-
+			// Not Coded
 		}// componentHidden
 
 		@Override
 		public void componentMoved(ComponentEvent componentEvent) {
-			// TODO Auto-generated method stub
-
+			// Not Coded
 		}// componentMoved
 
 		@Override
 		public void componentShown(ComponentEvent componentEvent) {
-			// TODO Auto-generated method stub
-
+			// Not Coded
 		}// componentShown
 
 		/* ----------------- MouseWheelListener --------------- */
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent) {
-			// int increment = scrollBar.getUnitIncrement(1);
 			scrollBar.setValue(scrollBar.getValue() + mouseWheelEvent.getWheelRotation());
 		}// mouseWheelMoved
 
 		// /* ----------------- CaretListener ---------------*/
-		private Highlighter highlighterSource, highlighterOther;
+		private Highlighter highlighterSource;
 		private Highlighter highlighterAddress;
 		private Highlighter highlighterIndex;
 		private Highlighter.HighlightPainter highlightPainterYellow = new DefaultHighlighter.DefaultHighlightPainter(
@@ -569,49 +474,43 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				Color.PINK);
 		private Highlighter.HighlightPainter highlightPainterGray = new DefaultHighlighter.DefaultHighlightPainter(
 				Color.LIGHT_GRAY);
-		
+
 		private Highlighter.HighlightPainter highlightPainterAscii;
 		private Highlighter.HighlightPainter highlightPainterData;
-		
 
 		@Override
 		public void caretUpdate(CaretEvent caretEvent) {
 			int caretDot = caretEvent.getDot();
-			
-			int startAscii,endAscii,startData,endData;
-			String name = ((Component) caretEvent.getSource()).getName();
-			String message = "no Message";
+
+			int startAscii, endAscii, startData, endData;
 			highlighterIndex = textIndex.getHighlighter();
 			highlighterAddress = textAddr.getHighlighter();
 			highlighterSource = ((JTextComponent) caretEvent.getSource()).getHighlighter();
-			
+
 			if ((caretDot % COLUMNS_PER_LINE) < LAST_COLUMN_DATA) { // data
 				highlightPainterAscii = highlightPainterGray;
 				highlightPainterData = highlightPainterYellow;
 				startData = caretDot;
 				startAscii = HEUtility.getAsciiDot(startData);
-			}else {//ascii
+			} else {// ascii
 				highlightPainterAscii = highlightPainterYellow;
 				highlightPainterData = highlightPainterGray;
 
 				startAscii = caretDot;
 				startData = HEUtility.getDataDot(startAscii);
-			}//if data v ascii	
-				endAscii = startAscii + 1;				
-				endData = HEUtility.getDataDotEnd(startData);
-			
-			
+			} // if data v ascii
+			endAscii = startAscii + 1;
+			endData = HEUtility.getDataDotEnd(startData);
+
 			int startAddressDot = HEUtility.getAddressDot(startAscii);
-			int endAddressDot = startAddressDot + BYTES_PER_LINE_ADDR;		
-			
-			int startIndexDot= HEUtility.getIndexDot(startAscii);
+			int endAddressDot = startAddressDot + BYTES_PER_LINE_ADDR;
+
+			int startIndexDot = HEUtility.getIndexDot(startAscii);
 			int endIndexDot = startIndexDot + 2;
-			
 
 			try {
 				clearHighlights(highlighterSource);
-//				clearHighlights(highlighterOther);
-				highlighterSource.addHighlight(startAscii, endAscii, highlightPainterAscii); 
+				highlighterSource.addHighlight(startAscii, endAscii, highlightPainterAscii);
 				highlighterSource.addHighlight(startData, endData, highlightPainterData);
 
 				clearHighlights(highlighterAddress);
@@ -620,9 +519,11 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				highlighterIndex.addHighlight(startIndexDot, endIndexDot, highlightPainterPink);
 
 			} catch (BadLocationException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} // try
+			
+			lblAddress.setText(String.format("%08X ", HEUtility.getSourceIndex(startData) + currentLineStart));
 
 		}// caretUpdate
 
@@ -633,18 +534,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			} // for each highlighted
 		}// clearHighlights
 
-		// private Point hexToAsciiPosition(int row, int byteIndex) {
-		//
-		// }
-
-		// /* ----------------- ChangeListener ---------------*/
-		// @Override
-		// public void stateChanged(ChangeEvent e) {
-		// // TODO Auto-generated method stub
-		//
-		// }//stateChanged
-
 	}// class adapterHexEditDisplay
-
 
 }// class HexEditDisplayPanel

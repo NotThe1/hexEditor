@@ -13,10 +13,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -55,7 +60,10 @@ public class HexEditor {
 	AbstractAction actionRedo;
 
 	File activeFile;
-	String currentPath;
+	String activeFilePath;
+	String activeFileName;
+	
+	File workingFile;
 
 	private FileChannel fileChannel;
 	private MappedByteBuffer fileMap;
@@ -89,7 +97,7 @@ public class HexEditor {
 	}// ClearFile
 
 	private void setupFile() {
-		displayFileName(activeFile);
+		displayFileName(activeFileName,activeFilePath);
 		setAllActivityButtons(true);
 		setAllMenuActivity(true);
 
@@ -105,9 +113,6 @@ public class HexEditor {
 		lblFileName.setToolTipText(filePath);
 	}// displayFileName
 
-	private void displayFileName(File file) {
-		displayFileName(file.getName(), file.getAbsolutePath());
-	}// displayFileName
 
 	private void setActivityStates(String activity) {
 		switch (activity) {
@@ -152,22 +157,42 @@ public class HexEditor {
 
 	}// disableAllActivity
 
-	private void loadFile(File sourceFile) {
-		activeFile = sourceFile;
-		currentPath = activeFile.getParent();
-		log.addInfo("Loading File -> " + sourceFile.toString());
-		setActivityStates(FILE_ACTIVE);
+	private void loadFile(File subjectFile) {
 		closeFile();
+		
+		workingFile = makeWorkingFile();
+//		workingFile = makeWorkingFile0().toFile();
+		activeFile = subjectFile;
+		activeFilePath = activeFile.getParent();
+		activeFileName = activeFile.getName();
+		log.addInfo("Loading File -> " + subjectFile.toString());
+		setActivityStates(FILE_ACTIVE);
+		
+		
+		log.addInfo("activeFile: " + activeFile.getAbsolutePath());
+		log.addInfo("workingFile: " + workingFile.getAbsolutePath());
+		/////////////////////////////////////////////
+		
+		Path source = Paths.get(activeFile.getAbsolutePath());
+		Path target = Paths.get(workingFile.getAbsolutePath());
+		try {
+			Files.copy(source, target,StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			log.addError("Failed to copy " + activeFile.getAbsolutePath() + " to " + workingFile.getAbsolutePath());
+			e.printStackTrace();
+		}//try
 
-		long sourceLength = sourceFile.length();
-		if (sourceLength >= Integer.MAX_VALUE) {
+		////////////////////////////////////////////
+		
+		long fileLength = workingFile.length();
+		if (fileLength >= Integer.MAX_VALUE) {
 			Toolkit.getDefaultToolkit().beep();
-			String message = String.format("[HexEditPanelFile : loadData] file too large %,d%n", sourceLength);
+			String message = String.format("[HexEditPanelFile : loadData] file too large %,d%n", fileLength);
 			log.addWarning(message);
 			return;
 		} // if
 
-		try (RandomAccessFile raf = new RandomAccessFile(sourceFile, "rw")) {
+		try (RandomAccessFile raf = new RandomAccessFile(workingFile, "rw")) {
 			fileChannel = raf.getChannel();
 			fileMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileChannel.size());// this.totalBytesOnDisk);
 			fileChannel.close();
@@ -181,31 +206,66 @@ public class HexEditor {
 
 	}// loadFile
 
-	// private Action findAction(Action[] actions, String key) {
-	// for (Action action : actions) {
-	// if (action.getValue(Action.NAME).equals(key)) {
-	// return action;
-	// } // if
-	// } // for
-	// return null;
-	// }// findAction
 
 	// ---------------------------------------------------------
+	class TempFilter implements FilenameFilter{
+
+		@Override
+		public boolean accept(File dir, String name) {
+			if (name.startsWith(TEMP_PREFIX) && name.endsWith(TEMP_SUFFIX)) {
+				return true;
+			}else {
+			return false;
+			}//if
+		}//accept
+		
+	}//class TempFilter
+	
+
+	private void removeAllWorkingFiles() {
+		File tempDir = new File(System.getProperty("java.io.tmpdir"));
+		File[] tempFiles = tempDir.listFiles(new TempFilter());
+		for (File file:tempFiles) {
+			log.addInfo("Deleting file: " + file.getName());
+			file.delete();
+		}//for
+				
+	}//removeAllTempFiles
+	
+	private File makeWorkingFile() {
+		File result = null;
+		try {
+			result = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
+			log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
+		} catch (IOException e) {
+			log.addError("failed to make WorkingFile",e.getMessage());
+			e.printStackTrace();
+		}// try
+		return result;
+	}//makeWorkingFile
+	
+	private Path makeWorkingFile0() {
+		Path result = null;
+		try {
+			result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
+			log.addInfo("Working file = " + result);
+		} catch (IOException e) {
+			log.addError("failed to make WorkingFile",e.getMessage());
+			e.printStackTrace();
+		}// try
+		return result;
+	}//makeWorkingFile
+	
+	
 
 	private void doFileNew() {
 		log.addInfo("** [doFileNew] **");
-
-		// JMenuItem mi1 = MenuUtility.addFileItem(mnuFile, new File("C:\\rat\\asjdfajf\\AddedFile.txt"));
-		// JMenuItem mi2 = MenuUtility.addFileItem(mnuFile, new File("C:\\Users\\admin\\Dropbox\\My
-		// Scans\\Misc\\US.bmp"));
-		// JMenuItem mi3 = MenuUtility.addFileItem(mnuFile, new File("C:\\My\\Sysinternals\\accesschk.exe"));
-		// int a = 1;
 	}// doFileNew
 
 	private void doFileOpen() {
 		log.addInfo("** [doFileOpen] **");
 
-		JFileChooser chooser = new JFileChooser(currentPath);
+		JFileChooser chooser = new JFileChooser(activeFilePath);
 		if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
 			return; // just get out
 		} // if open
@@ -215,14 +275,23 @@ public class HexEditor {
 
 	private void doFileClose() {
 		log.addInfo("** [doFileClose] **");
-		System.out.println("** [doFileClose] **");
+//		System.out.println("** [doFileClose] **");
 		setActivityStates(NO_FILE);
 		closeFile();
 	}// doFileSave
 
 	private void doFileSave() {
 		log.addInfo("** [doFileSave] **");
-		System.out.println("** [doFileSave] **");
+		
+		Path originalPath = Paths.get(activeFile.getAbsolutePath());
+		Path workingPath = Paths.get(workingFile.getAbsolutePath());
+		try {
+			Files.copy(workingPath, originalPath,StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			log.addError("Failed to Save " + workingFile.getAbsolutePath() + " to " + activeFile.getAbsolutePath());
+			e.printStackTrace();
+		}//try
+
 	}// doFileSave
 
 	private void doFileSaveAs() {
@@ -267,6 +336,7 @@ public class HexEditor {
 			e.printStackTrace();
 		} // try
 		activeFile = null;
+		workingFile = null;
 	}// closeFile
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -280,7 +350,7 @@ public class HexEditor {
 		myPrefs.putInt("LocY", point.y);
 //		myPrefs.putInt("DividerLocationMajor", splitPaneMajor.getDividerLocation());
 //		myPrefs.putInt("DividerLocationMinor", splitPaneMinor.getDividerLocation());
-		myPrefs.put("CurrentPath", currentPath);
+		myPrefs.put("CurrentPath", activeFilePath);
 		MenuUtility.saveRecentFileList(myPrefs, mnuFile);
 		myPrefs = null;
 		if (activeFile != null) {
@@ -301,12 +371,15 @@ public class HexEditor {
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		frameBase.setSize(myPrefs.getInt("Width", 761), myPrefs.getInt("Height", 693));
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
-		currentPath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
+		activeFilePath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
 		myPrefs = null;
 
 		clearFile();
 		log.addInfo("Starting .........");
+		removeAllWorkingFiles();
+//		workingFile = makeWorkingFile();
+		loadFile(new File("C:\\Temp\\A\\ASM.COM"));
 	}// appInit
 
 	private void initActions() {
@@ -724,6 +797,11 @@ public class HexEditor {
 	private static final String BTN_EDIT_PASTE = "btnEditPaste";
 	private static final String BTN_EDIT_UNDO = "btnEditUndo";
 	private static final String BTN_EDIT_REDO = "btnEditREDO";
+	
+	private static final String TEMP_PREFIX = "HexEdit";	
+	private static final String TEMP_SUFFIX = ".tmp";
+	
+
 
 	//////////////////////////////////////////////////////////////////////////
 	private JFrame frameBase;

@@ -69,6 +69,10 @@ public class AppLogger {
 	public void addInfo(String... message) {
 		addMeta(attrBlack, message);
 	}// addInfo
+	
+//	public void info(String format,Object...args) {
+//		insertListing(String.format)
+//	}//info
 
 	public void addWarning(String... message) {
 		addMeta(attrBlue, message);

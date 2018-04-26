@@ -5,15 +5,12 @@ import java.util.regex.Pattern;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 
 public class HexFilter extends DocumentFilter {
 	HexEditDisplayPanel host;
-	// DocumentFilter.FilterBypass fb;
-	// int offset;
-	// int length;
-	// String text;
-	// AttributeSet attrs;
+	AsciiForms asciiForms = AsciiForms.getInstance();
 
 	public HexFilter() {
 	}// Constructor
@@ -36,31 +33,51 @@ public class HexFilter extends DocumentFilter {
 	public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
 			throws BadLocationException {
 
+//		byte newValue;
+		int dataDot;
+
 		if ((offset % COLUMNS_PER_LINE) < LAST_COLUMN_DATA) { // data
 			Matcher m = onehexPattern.matcher(text);
 			if ((length == 0) && m.matches()) { // replace one Hex digit char
 				fb.replace(offset, 1, text.toUpperCase(), HEUtility.dataAttributes);
-//				fb.replace(offset, 1, text.toUpperCase(), attrs);
-			}else {
-				return; //do nothing
-			}//if data
-		} else {// Ascii
-			String string;
-			byte theByte = text.getBytes()[0];
-			if ((theByte >= 0X20) && (theByte <= 126)) {
-				string = text;
-			} else {
-				return;
-//				string = UNPRINTABLE;
-			} // if printable
 
-			fb.replace(offset, length + 1, string, HEUtility.asciiAttributes);
-//			fb.replace(offset, length + 1, string, attrs);
+				/* HexString representation */
+				Document doc = fb.getDocument();
+				String dataString = doc.getText(offset - 1, 3).trim();
+				asciiForms.setString(dataString);
+
+				/* replace value in original map */
+				host.updateValue(offset, asciiForms.getByteForm());
+				/* replace value in original map */
+
+				/* ascii representation */
+				int asciiDot = HEUtility.getAsciiDot(offset);
+				fb.replace(asciiDot, length + 1, asciiForms.getAsciiForm(), HEUtility.asciiAttributes);
+			} else {
+				return; // do nothing
+			} // if data
+		} else {// Ascii
+			if (asciiForms.setAscii(text)) {
+				dataDot = HEUtility.getDataDot(offset);
+				fb.replace(dataDot, 2, asciiForms.getStringForm(), HEUtility.dataAttributes);
+				fb.replace(offset, length + 1, text, HEUtility.asciiAttributes);
+				
+				/* replace value in original map */
+				host.updateValue(offset, asciiForms.getByteForm());
+				/* replace value in original map */
+			} else {
+				// do nothing
+			} // if printable
 		} // if
+
+		host.setDot(offset + 1); // reset the caret for highlighting
 	}// replace
 
+
 	Pattern onehexPattern = Pattern.compile("[0123456789ABCDEFabcdef]{1}");
-	private static final String UNPRINTABLE = ".";
+//	private static final String UNPRINTABLE = HEUtility.UNPRINTABLE;
+	public static final String PRINTABLES = HEUtility.PRINTABLES;
 	private static final int LAST_COLUMN_DATA = HEUtility.LAST_COLUMN_DATA;
 	private static final int COLUMNS_PER_LINE = HEUtility.COLUMNS_PER_LINE;
+
 }// class HexDocumentFilter
