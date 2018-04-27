@@ -192,6 +192,13 @@ public class HexEditor {
 			return;
 		} // if
 
+		if (fileLength <= 0) {
+			Toolkit.getDefaultToolkit().beep();
+			String message = String.format("[HexEditPanelFile : loadData] file is empty %,d%n", fileLength);
+			log.addWarning(message);
+			return;
+		} // if
+
 		try (RandomAccessFile raf = new RandomAccessFile(workingFile, "rw")) {
 			fileChannel = raf.getChannel();
 			fileMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileChannel.size());// this.totalBytesOnDisk);
@@ -379,7 +386,7 @@ public class HexEditor {
 		log.addInfo("Starting .........");
 		removeAllWorkingFiles();
 //		workingFile = makeWorkingFile();
-		loadFile(new File("C:\\Temp\\A\\ASM.COM"));
+//		loadFile(new File("C:\\Temp\\A\\ASM.COM"));
 	}// appInit
 
 	private void initActions() {
@@ -610,12 +617,27 @@ public class HexEditor {
 		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
 		panel.setLayout(gbl_panel);
 		
-		button = new JButton("Test button - Write");
-		GridBagConstraints gbc_button = new GridBagConstraints();
-		gbc_button.insets = new Insets(0, 0, 5, 5);
-		gbc_button.gridx = 0;
-		gbc_button.gridy = 0;
-		panel.add(button, gbc_button);
+		btnTestButton = new JButton("Test button");
+		btnTestButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				String msg;
+				msg = String.format("workingFile null: %s, activeFile null: %s",workingFile==null,activeFile==null);
+				log.addInfo(msg);
+				
+				log.info("workingFile null: %s, activeFile null: %s%n",workingFile==null,activeFile==null);
+				
+				log.info("one","two","Three");
+				
+				log.warn("Warning");
+				log.error("Error");
+				log.special("Special");
+			}
+		});
+		GridBagConstraints gbc_btnTestButton = new GridBagConstraints();
+		gbc_btnTestButton.insets = new Insets(0, 0, 5, 5);
+		gbc_btnTestButton.gridx = 0;
+		gbc_btnTestButton.gridy = 0;
+		panel.add(btnTestButton, gbc_btnTestButton);
 		
 		textField = new JTextField("C:\\Users\\admin\\git\\hexEditor\\hexEditor\\src\\resources\\test.bin");
 		textField.setToolTipText("Double click to pick a different file");
@@ -626,13 +648,6 @@ public class HexEditor {
 		gbc_textField.gridx = 1;
 		gbc_textField.gridy = 0;
 		panel.add(textField, gbc_textField);
-		
-		button_1 = new JButton("Test button - read");
-		GridBagConstraints gbc_button_1 = new GridBagConstraints();
-		gbc_button_1.insets = new Insets(0, 0, 0, 5);
-		gbc_button_1.gridx = 0;
-		gbc_button_1.gridy = 2;
-		panel.add(button_1, gbc_button_1);
 		
 		scrollPane = new JScrollPane();
 		splitPane.setRightComponent(scrollPane);
@@ -840,9 +855,8 @@ public class HexEditor {
 	private JPanel panelMain;
 	private JSplitPane splitPane;
 	private JPanel panel;
-	private JButton button;
+	private JButton btnTestButton;
 	private JTextField textField;
-	private JButton button_1;
 	private JScrollPane scrollPane;
 	private JTextPane textLog;
 	//////////////////////////////////////////////////////////////////////////

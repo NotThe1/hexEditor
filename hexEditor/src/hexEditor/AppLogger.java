@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,22 +71,60 @@ public class AppLogger {
 		addMeta(attrBlack, message);
 	}// addInfo
 	
-//	public void info(String format,Object...args) {
-//		insertListing(String.format)
-//	}//info
-
+	public void info(String...message) {
+		addMeta(attrBlack,message);
+	}//info
+	
+	public void info(String format,Object...args) {
+		insertListing(doFormat(format,args),attrBlack);
+	}//info
+	
 	public void addWarning(String... message) {
 		addMeta(attrBlue, message);
-	}// addInfo
+	}// addWarning
 
+	public void warn(String...message) {
+		addMeta(attrBlue,message);
+	}//warn
+	
+	public void warn(String format,Object...args) {
+		insertListing(doFormat(format,args),attrBlue);
+	}//warn
+	
 	public void addError(String... message) {
 		addMeta(attrRed, message);
-	}// addInfo
+	}// addError
+
+	public void error(String...message) {
+		addMeta(attrRed,message);
+	}//error
+	
+	public void error(String format,Object...args) {
+		insertListing(doFormat(format,args),attrRed);
+	}//error
 
 	public void addSpecial(String... message) {
 		addMeta(attrTeal, message);
-	}// addInfo
+	}// addSpecial
 	
+	public void special(String...message) {
+		addMeta(attrTeal,message);
+	}//special
+	
+	public void special(String format,Object...args) {
+		insertListing(doFormat(format,args),attrTeal);
+	}//special
+
+	
+	private String doFormat(String format, Object...args) {
+		Formatter formatter = new Formatter();
+		String ans = formatter.format(format,args).toString();
+		formatter.close();
+		return ans;
+		
+//		return new Formatter().format(format,args).toString();
+	}//doFormat
+
 //----------Time-------------------------------	
 	
 	public Date addTimeStamp() {
