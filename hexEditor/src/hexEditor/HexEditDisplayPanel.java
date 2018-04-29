@@ -67,6 +67,16 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		fillPane();
 	}// run
 
+	public boolean isDataChanged() {
+		return hexFilter.isDataChanged();
+	}// isDataChanged
+	
+	public void setDataChanged(boolean state) {
+		hexFilter.setDataChanged(state);
+	}//setDataChanged
+	
+	
+
 	public int getCurrentLineStart() {
 		return this.currentLineStart;
 	}// getCurrentLineStart
@@ -74,11 +84,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	public void updateValue(int dot, byte newValue) {
 		int location = HEUtility.getSourceIndex(dot) + currentLineStart;
 
-//		int location = offset + currentLineStart;
+		// int location = offset + currentLineStart;
 		log.addInfo(String.format("[HexEditDisplayPanel.updateData] newValue %02X, offset = %04X", newValue, location));
 		source.put(location, newValue);
 	}// updateSource
-
 
 	public void setDot(int position) {
 		textHex.setCaretPosition(position);
@@ -137,6 +146,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	public void clear() {
 		clearAllDocs();
+		if (source != null) {
+			source.clear();
+		}//if
+		setDataChanged(false);
 	}// clear
 
 	private void clearAllDocs() {
@@ -210,7 +223,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	public void setData(ByteBuffer data) {
 		source = data.duplicate();
-		// source = buffer.
 	}// setData
 
 	public void setData(byte[] data) {
@@ -522,7 +534,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				// Auto-generated catch block
 				e.printStackTrace();
 			} // try
-			
+
 			lblAddress.setText(String.format("%08X ", HEUtility.getSourceIndex(startData) + currentLineStart));
 
 		}// caretUpdate

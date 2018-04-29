@@ -71,7 +71,7 @@ public class AppLogger {
 		addMeta(attrBlack, message);
 	}// addInfo
 	
-	public void info(String...message) {
+	public void info(String message) {
 		addMeta(attrBlack,message);
 	}//info
 	

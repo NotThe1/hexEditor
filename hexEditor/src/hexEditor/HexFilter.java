@@ -9,8 +9,9 @@ import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 
 public class HexFilter extends DocumentFilter {
-	HexEditDisplayPanel host;
-	AsciiForms asciiForms = AsciiForms.getInstance();
+	private HexEditDisplayPanel host;
+	private AsciiForms asciiForms = AsciiForms.getInstance();
+	private boolean dataChanged;
 
 	public HexFilter() {
 	}// Constructor
@@ -18,7 +19,16 @@ public class HexFilter extends DocumentFilter {
 	public HexFilter(HexEditDisplayPanel host) {
 		this.host = host;
 		HEUtility.makeStyles();
+		dataChanged = false;
 	}// Constructor
+	
+	public boolean isDataChanged() {
+		return dataChanged;
+	}//isDataChanged
+	
+	public void setDataChanged(boolean state) {
+		dataChanged = state;
+	}//setDataChanged
 
 	@Override
 	public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr)
@@ -33,7 +43,6 @@ public class HexFilter extends DocumentFilter {
 	public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
 			throws BadLocationException {
 
-//		byte newValue;
 		int dataDot;
 
 		if ((offset % COLUMNS_PER_LINE) < LAST_COLUMN_DATA) { // data
@@ -46,13 +55,15 @@ public class HexFilter extends DocumentFilter {
 				String dataString = doc.getText(offset - 1, 3).trim();
 				asciiForms.setString(dataString);
 
-				/* replace value in original map */
-				host.updateValue(offset, asciiForms.getByteForm());
-				/* replace value in original map */
-
 				/* ascii representation */
 				int asciiDot = HEUtility.getAsciiDot(offset);
 				fb.replace(asciiDot, length + 1, asciiForms.getAsciiForm(), HEUtility.asciiAttributes);
+				
+				/* replace value in original map */
+				host.updateValue(offset, asciiForms.getByteForm());
+				dataChanged = true;
+				/* replace value in original map */
+
 			} else {
 				return; // do nothing
 			} // if data
@@ -64,6 +75,7 @@ public class HexFilter extends DocumentFilter {
 				
 				/* replace value in original map */
 				host.updateValue(offset, asciiForms.getByteForm());
+				dataChanged = true;
 				/* replace value in original map */
 			} else {
 				// do nothing

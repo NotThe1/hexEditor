@@ -59,14 +59,12 @@ public class HexEditor {
 	AbstractAction actionUndo;
 	AbstractAction actionRedo;
 
-	File activeFile;
-	String activeFilePath;
 	String activeFileName;
-	
+	String activeFilePath;
+	String activeFileAbsolutePath;
+
 	File workingFile;
 
-	private FileChannel fileChannel;
-	private MappedByteBuffer fileMap;
 
 	/**
 	 * Launch the application.
@@ -84,7 +82,7 @@ public class HexEditor {
 		});
 	}// main
 
-	private void clearFile() {
+	private void setUIasNoFile() {
 		displayFileName(NO_FILE_SELECTED, NO_FILE_SELECTED);
 		setAllActivityButtons(false);
 		setAllMenuActivity(false, mnuRemoveRecentFiles, mnuFileExit);
@@ -96,8 +94,8 @@ public class HexEditor {
 		hexEditDisplay.clear();
 	}// ClearFile
 
-	private void setupFile() {
-		displayFileName(activeFileName,activeFilePath);
+	private void setUIasFileActive() {
+//		displayFileName(activeFileName, activeFilePath);
 		setAllActivityButtons(true);
 		setAllMenuActivity(true);
 
@@ -111,16 +109,16 @@ public class HexEditor {
 	private void displayFileName(String fileName, String filePath) {
 		lblFileName.setText(fileName);
 		lblFileName.setToolTipText(filePath);
+		// lblFileName.setForeground(Color.BLACK);
 	}// displayFileName
-
 
 	private void setActivityStates(String activity) {
 		switch (activity) {
 		case NO_FILE:
-			clearFile();
+			setUIasNoFile();
 			break;
 		case FILE_ACTIVE:
-			setupFile();
+			setUIasFileActive();
 			break;
 		default:
 			log.addError("Bad Activity State -> " + activity);
@@ -156,50 +154,60 @@ public class HexEditor {
 		} // for all menus
 
 	}// disableAllActivity
+	
+	private void setActiveFileInfo(File currentActiveFile) {
+		activeFileAbsolutePath = currentActiveFile.getAbsolutePath();
+		activeFilePath = currentActiveFile.getParent();
+		activeFileName = currentActiveFile.getName();
+		displayFileName(activeFileName, activeFilePath);
+
+	}//setActiveFileInfo
 
 	private void loadFile(File subjectFile) {
-		closeFile();
-		
-		workingFile = makeWorkingFile();
-//		workingFile = makeWorkingFile0().toFile();
-		activeFile = subjectFile;
-		activeFilePath = activeFile.getParent();
-		activeFileName = activeFile.getName();
-		log.addInfo("Loading File -> " + subjectFile.toString());
-		setActivityStates(FILE_ACTIVE);
-		
-		
-		log.addInfo("activeFile: " + activeFile.getAbsolutePath());
-		log.addInfo("workingFile: " + workingFile.getAbsolutePath());
-		/////////////////////////////////////////////
-		
-		Path source = Paths.get(activeFile.getAbsolutePath());
-		Path target = Paths.get(workingFile.getAbsolutePath());
-		try {
-			Files.copy(source, target,StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			log.addError("Failed to copy " + activeFile.getAbsolutePath() + " to " + workingFile.getAbsolutePath());
-			e.printStackTrace();
-		}//try
 
-		////////////////////////////////////////////
-		
-		long fileLength = workingFile.length();
+		closeFile();
+
+		long fileLength = subjectFile.length();
 		if (fileLength >= Integer.MAX_VALUE) {
 			Toolkit.getDefaultToolkit().beep();
-			String message = String.format("[HexEditPanelFile : loadData] file too large %,d%n", fileLength);
-			log.addWarning(message);
+			log.warn("[HexEditPanelFile : loadData] file too large %,d%n", fileLength);
 			return;
 		} // if
 
 		if (fileLength <= 0) {
 			Toolkit.getDefaultToolkit().beep();
-			String message = String.format("[HexEditPanelFile : loadData] file is empty %,d%n", fileLength);
-			log.addWarning(message);
+			log.warn("[HexEditPanelFile : loadData] file is empty %,d%n", fileLength);
 			return;
 		} // if
 
+		workingFile = makeWorkingFile();
+//		activeFileAbsolutePath = subjectFile.getAbsolutePath();
+//		activeFilePath = subjectFile.getParent();
+//		activeFileName = subjectFile.getName();
+		setActiveFileInfo(subjectFile);
+		log.info("Loading File -> %s%n", activeFileAbsolutePath);
+		setActivityStates(FILE_ACTIVE);
+
+		log.info("activeFile: %s%n", activeFileAbsolutePath);
+		log.info("workingFile: %s%n", workingFile.getAbsolutePath());
+		/////////////////////////////////////////////
+
+		try {
+			Path source = Paths.get(activeFileAbsolutePath);
+			Path target = Paths.get(workingFile.getAbsolutePath());
+			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			log.error("Failed to copy %s to %s", activeFileAbsolutePath, workingFile.getAbsolutePath());
+			e.printStackTrace();
+		} // try
+
+		////////////////////////////////////////////
+
+		FileChannel fileChannel;
+		MappedByteBuffer fileMap = null;
+
 		try (RandomAccessFile raf = new RandomAccessFile(workingFile, "rw")) {
+
 			fileChannel = raf.getChannel();
 			fileMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileChannel.size());// this.totalBytesOnDisk);
 			fileChannel.close();
@@ -210,60 +218,58 @@ public class HexEditor {
 
 		hexEditDisplay.setData(fileMap);
 		hexEditDisplay.run();
+		fileMap = null;
+		// hexEditDisplay.run();
 
 	}// loadFile
 
-
 	// ---------------------------------------------------------
-	class TempFilter implements FilenameFilter{
+	class TempFilter implements FilenameFilter {
 
 		@Override
 		public boolean accept(File dir, String name) {
 			if (name.startsWith(TEMP_PREFIX) && name.endsWith(TEMP_SUFFIX)) {
 				return true;
-			}else {
-			return false;
-			}//if
-		}//accept
-		
-	}//class TempFilter
-	
+			} else {
+				return false;
+			} // if
+		}// accept
+
+	}// class TempFilter
 
 	private void removeAllWorkingFiles() {
 		File tempDir = new File(System.getProperty("java.io.tmpdir"));
 		File[] tempFiles = tempDir.listFiles(new TempFilter());
-		for (File file:tempFiles) {
+		for (File file : tempFiles) {
 			log.addInfo("Deleting file: " + file.getName());
 			file.delete();
-		}//for
-				
-	}//removeAllTempFiles
-	
+		} // for
+
+	}// removeAllTempFiles
+
 	private File makeWorkingFile() {
 		File result = null;
 		try {
 			result = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
 			log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
 		} catch (IOException e) {
-			log.addError("failed to make WorkingFile",e.getMessage());
+			log.addError("failed to make WorkingFile", e.getMessage());
 			e.printStackTrace();
-		}// try
+		} // try
 		return result;
-	}//makeWorkingFile
-	
+	}// makeWorkingFile
+
 	private Path makeWorkingFile0() {
 		Path result = null;
 		try {
 			result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
 			log.addInfo("Working file = " + result);
 		} catch (IOException e) {
-			log.addError("failed to make WorkingFile",e.getMessage());
+			log.addError("failed to make WorkingFile", e.getMessage());
 			e.printStackTrace();
-		}// try
+		} // try
 		return result;
-	}//makeWorkingFile
-	
-	
+	}// makeWorkingFile
 
 	private void doFileNew() {
 		log.addInfo("** [doFileNew] **");
@@ -282,28 +288,40 @@ public class HexEditor {
 
 	private void doFileClose() {
 		log.addInfo("** [doFileClose] **");
-//		System.out.println("** [doFileClose] **");
-		setActivityStates(NO_FILE);
+		// System.out.println("** [doFileClose] **");
+		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
+			return; // get out
+		} // if
+
 		closeFile();
+		setActivityStates(NO_FILE);
 	}// doFileSave
 
 	private void doFileSave() {
-		log.addInfo("** [doFileSave] **");
-		
-		Path originalPath = Paths.get(activeFile.getAbsolutePath());
+		log.info("[HexEditor.doFileSave]");
+
+		Path originalPath = Paths.get(activeFileAbsolutePath);
 		Path workingPath = Paths.get(workingFile.getAbsolutePath());
 		try {
-			Files.copy(workingPath, originalPath,StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(workingPath, originalPath, StandardCopyOption.REPLACE_EXISTING);
+			hexEditDisplay.setDataChanged(false);
 		} catch (IOException e) {
-			log.addError("Failed to Save " + workingFile.getAbsolutePath() + " to " + activeFile.getAbsolutePath());
+			log.addError("Failed to Save %s to %s", workingFile.getAbsolutePath(), activeFileAbsolutePath);
 			e.printStackTrace();
-		}//try
+		} // try
 
 	}// doFileSave
 
 	private void doFileSaveAs() {
 		log.addInfo("** [doFileSaveAs] **");
-
+		JFileChooser chooser = new JFileChooser(activeFilePath);
+		if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
+			return; // just get out
+		} // if open
+		File newActiveFile = chooser.getSelectedFile();
+		setActiveFileInfo(newActiveFile);
+		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(), applicationAdapter);
+		doFileSave();
 	}// doFileSaveAs
 
 	private void doFilePrint() {
@@ -312,42 +330,70 @@ public class HexEditor {
 	}// doFilePrint
 
 	private void doFileExit() {
-		if (activeFile != null) {
-			String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
-					activeFile.getName());
-			int answer = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
-					JOptionPane.YES_NO_CANCEL_OPTION);
-			if (answer == JOptionPane.CANCEL_OPTION) {
-				return;
-			} else if (answer == JOptionPane.YES_OPTION) {
-				doFileSave();
-			} else if (answer == JOptionPane.NO_OPTION) {
-				/* do nothing special */
-			} // if answer
-		} // if active file
 		appClose();
-		System.exit(0);
 	}// doFileExit
 
-	public void closeFile() {
-		try {
-			if (fileMap != null) {
-				fileMap = null;
-			} // if
+	/* if data changed save i,t if user wants to save it */
+	private int checkForDataChange() {
+		int result = JOptionPane.NO_OPTION;
 
-			if (fileChannel != null) {
-				fileChannel.close();
-				fileChannel = null;
-			} // if
-		} catch (IOException e) {
-			e.printStackTrace();
-		} // try
-		activeFile = null;
+		if (hexEditDisplay.isDataChanged()) {
+			String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
+					activeFileName);
+			result = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (result == JOptionPane.CANCEL_OPTION) {
+				// return cancel result
+			} else if (result == JOptionPane.YES_OPTION) {
+				doFileSave();
+			} else if (result == JOptionPane.NO_OPTION) {
+				/* do nothing special */
+			} // if answer
+		} // DataChanged
+
+		return result;
+	}//
+
+	public void closeFile() {
+
+		// if (hexEditDisplay.isDataChanged()) {
+		// String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
+		// activeFileName);
+		// int answer = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
+		// JOptionPane.YES_NO_CANCEL_OPTION);
+		// if (answer == JOptionPane.CANCEL_OPTION) {
+		// return;
+		// } else if (answer == JOptionPane.YES_OPTION) {
+		// doFileSave();
+		// } else if (answer == JOptionPane.NO_OPTION) {
+		// /* do nothing special */
+		// } // if answer
+		// } // DataChanged
+
 		workingFile = null;
+		hexEditDisplay.clear();
 	}// closeFile
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	private void appClose() {
+		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
+			return; // get out
+		} // if
+
+		// if (hexEditDisplay.isDataChanged()) {
+		// String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
+		// activeFileName);
+		// int answer = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
+		// JOptionPane.YES_NO_CANCEL_OPTION);
+		// if (answer == JOptionPane.CANCEL_OPTION) {
+		// return;
+		// } else if (answer == JOptionPane.YES_OPTION) {
+		// doFileSave();
+		// } else if (answer == JOptionPane.NO_OPTION) {
+		// /* do nothing special */
+		// } // if answer
+		// } // DataChanged
+
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		Dimension dim = frameBase.getSize();
 		myPrefs.putInt("Height", dim.height);
@@ -355,17 +401,14 @@ public class HexEditor {
 		Point point = frameBase.getLocation();
 		myPrefs.putInt("LocX", point.x);
 		myPrefs.putInt("LocY", point.y);
-//		myPrefs.putInt("DividerLocationMajor", splitPaneMajor.getDividerLocation());
-//		myPrefs.putInt("DividerLocationMinor", splitPaneMinor.getDividerLocation());
+		// myPrefs.putInt("DividerLocationMajor", splitPaneMajor.getDividerLocation());
+		// myPrefs.putInt("DividerLocationMinor", splitPaneMinor.getDividerLocation());
 		myPrefs.put("CurrentPath", activeFilePath);
 		MenuUtility.saveRecentFileList(myPrefs, mnuFile);
 		myPrefs = null;
-		if (activeFile != null) {
-			doFileClose();
-		} // if
 
-		closeFile();
-		// System.out.println("Divider Location = " + splitPaneMajor.getDividerLocation());
+//		closeFile();
+		System.exit(0);
 	}// appClose
 
 	private void appInit() {
@@ -382,11 +425,12 @@ public class HexEditor {
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
 		myPrefs = null;
 
-		clearFile();
+		setActivityStates(NO_FILE);
+
 		log.addInfo("Starting .........");
 		removeAllWorkingFiles();
-//		workingFile = makeWorkingFile();
-//		loadFile(new File("C:\\Temp\\A\\ASM.COM"));
+		// workingFile = makeWorkingFile();
+		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
 	}// appInit
 
 	private void initActions() {
@@ -598,7 +642,7 @@ public class HexEditor {
 		gbc_hexEditDisplay.gridx = 0;
 		gbc_hexEditDisplay.gridy = 0;
 		panelMain.add(hexEditDisplay, gbc_hexEditDisplay);
-		
+
 		splitPane = new JSplitPane();
 		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		GridBagConstraints gbc_splitPane = new GridBagConstraints();
@@ -607,38 +651,31 @@ public class HexEditor {
 		gbc_splitPane.gridx = 1;
 		gbc_splitPane.gridy = 0;
 		panelMain.add(splitPane, gbc_splitPane);
-		
+
 		panel = new JPanel();
 		splitPane.setLeftComponent(panel);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{0, 0, 0};
-		gbl_panel.rowHeights = new int[]{0, 0, 0, 0};
-		gbl_panel.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.columnWidths = new int[] { 0, 0, 0 };
+		gbl_panel.rowHeights = new int[] { 0, 0, 0, 0 };
+		gbl_panel.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
-		
+
 		btnTestButton = new JButton("Test button");
 		btnTestButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				String msg;
-				msg = String.format("workingFile null: %s, activeFile null: %s",workingFile==null,activeFile==null);
-				log.addInfo(msg);
-				
-				log.info("workingFile null: %s, activeFile null: %s%n",workingFile==null,activeFile==null);
-				
-				log.info("one","two","Three");
-				
-				log.warn("Warning");
-				log.error("Error");
-				log.special("Special");
-			}
+
+				log.info("workingFile null: %s%n", workingFile == null);
+
+			}// actionPerformed
 		});
 		GridBagConstraints gbc_btnTestButton = new GridBagConstraints();
 		gbc_btnTestButton.insets = new Insets(0, 0, 5, 5);
 		gbc_btnTestButton.gridx = 0;
 		gbc_btnTestButton.gridy = 0;
 		panel.add(btnTestButton, gbc_btnTestButton);
-		
+
 		textField = new JTextField("C:\\Users\\admin\\git\\hexEditor\\hexEditor\\src\\resources\\test.bin");
 		textField.setToolTipText("Double click to pick a different file");
 		textField.setColumns(10);
@@ -648,10 +685,10 @@ public class HexEditor {
 		gbc_textField.gridx = 1;
 		gbc_textField.gridy = 0;
 		panel.add(textField, gbc_textField);
-		
+
 		scrollPane = new JScrollPane();
 		splitPane.setRightComponent(scrollPane);
-		
+
 		textLog = new JTextPane();
 		scrollPane.setViewportView(textLog);
 		splitPane.setDividerLocation(250);
@@ -812,11 +849,9 @@ public class HexEditor {
 	private static final String BTN_EDIT_PASTE = "btnEditPaste";
 	private static final String BTN_EDIT_UNDO = "btnEditUndo";
 	private static final String BTN_EDIT_REDO = "btnEditREDO";
-	
-	private static final String TEMP_PREFIX = "HexEdit";	
-	private static final String TEMP_SUFFIX = ".tmp";
-	
 
+	private static final String TEMP_PREFIX = "HexEdit";
+	private static final String TEMP_SUFFIX = ".tmp";
 
 	//////////////////////////////////////////////////////////////////////////
 	private JFrame frameBase;
