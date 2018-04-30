@@ -21,24 +21,24 @@ public class HexFilter extends DocumentFilter {
 		HEUtility.makeStyles();
 		dataChanged = false;
 	}// Constructor
-	
+
 	public boolean isDataChanged() {
 		return dataChanged;
-	}//isDataChanged
-	
+	}// isDataChanged
+
 	public void setDataChanged(boolean state) {
 		dataChanged = state;
-	}//setDataChanged
+	}// setDataChanged
 
-	@Override
-	public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr)
-			throws BadLocationException {
-		fb.insertString(offset, string.toUpperCase(), attr);
-	}// insertString
+	// @Override
+	// public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr)
+	// throws BadLocationException {
+	// fb.insertString(offset, string.toUpperCase(), attr);
+	// }// insertString
 
-	public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
-		fb.remove(offset, length);
-	}// remove
+	// public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
+	// fb.remove(offset, length);
+	// }// remove
 
 	public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
 			throws BadLocationException {
@@ -58,7 +58,7 @@ public class HexFilter extends DocumentFilter {
 				/* ascii representation */
 				int asciiDot = HEUtility.getAsciiDot(offset);
 				fb.replace(asciiDot, length + 1, asciiForms.getAsciiForm(), HEUtility.asciiAttributes);
-				
+
 				/* replace value in original map */
 				host.updateValue(offset, asciiForms.getByteForm());
 				dataChanged = true;
@@ -72,7 +72,7 @@ public class HexFilter extends DocumentFilter {
 				dataDot = HEUtility.getDataDot(offset);
 				fb.replace(dataDot, 2, asciiForms.getStringForm(), HEUtility.dataAttributes);
 				fb.replace(offset, length + 1, text, HEUtility.asciiAttributes);
-				
+
 				/* replace value in original map */
 				host.updateValue(offset, asciiForms.getByteForm());
 				dataChanged = true;
@@ -85,9 +85,8 @@ public class HexFilter extends DocumentFilter {
 		host.setDot(offset + 1); // reset the caret for highlighting
 	}// replace
 
-
 	Pattern onehexPattern = Pattern.compile("[0123456789ABCDEFabcdef]{1}");
-//	private static final String UNPRINTABLE = HEUtility.UNPRINTABLE;
+	// private static final String UNPRINTABLE = HEUtility.UNPRINTABLE;
 	public static final String PRINTABLES = HEUtility.PRINTABLES;
 	private static final int LAST_COLUMN_DATA = HEUtility.LAST_COLUMN_DATA;
 	private static final int COLUMNS_PER_LINE = HEUtility.COLUMNS_PER_LINE;

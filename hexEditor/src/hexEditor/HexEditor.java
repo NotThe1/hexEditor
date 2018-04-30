@@ -51,6 +51,8 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
+import myComponents.AppLogger;
+
 public class HexEditor {
 
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
@@ -181,15 +183,12 @@ public class HexEditor {
 		} // if
 
 		workingFile = makeWorkingFile();
-//		activeFileAbsolutePath = subjectFile.getAbsolutePath();
-//		activeFilePath = subjectFile.getParent();
-//		activeFileName = subjectFile.getName();
 		setActiveFileInfo(subjectFile);
 		log.info("Loading File -> %s%n", activeFileAbsolutePath);
 		setActivityStates(FILE_ACTIVE);
 
-		log.info("activeFile: %s%n", activeFileAbsolutePath);
-		log.info("workingFile: %s%n", workingFile.getAbsolutePath());
+//		log.info("activeFile: %s%n", activeFileAbsolutePath);
+//		log.info("workingFile: %s%n", workingFile.getAbsolutePath());
 		/////////////////////////////////////////////
 
 		try {
@@ -251,7 +250,7 @@ public class HexEditor {
 		File result = null;
 		try {
 			result = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-			log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
+//			log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
 		} catch (IOException e) {
 			log.addError("failed to make WorkingFile", e.getMessage());
 			e.printStackTrace();
@@ -259,17 +258,17 @@ public class HexEditor {
 		return result;
 	}// makeWorkingFile
 
-	private Path makeWorkingFile0() {
-		Path result = null;
-		try {
-			result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-			log.addInfo("Working file = " + result);
-		} catch (IOException e) {
-			log.addError("failed to make WorkingFile", e.getMessage());
-			e.printStackTrace();
-		} // try
-		return result;
-	}// makeWorkingFile
+//	private Path makeWorkingFile0() {
+//		Path result = null;
+//		try {
+//			result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
+//			log.addInfo("Working file = " + result);
+//		} catch (IOException e) {
+//			log.addError("failed to make WorkingFile", e.getMessage());
+//			e.printStackTrace();
+//		} // try
+//		return result;
+//	}// makeWorkingFile
 
 	private void doFileNew() {
 		log.addInfo("** [doFileNew] **");
@@ -355,21 +354,6 @@ public class HexEditor {
 	}//
 
 	public void closeFile() {
-
-		// if (hexEditDisplay.isDataChanged()) {
-		// String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
-		// activeFileName);
-		// int answer = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
-		// JOptionPane.YES_NO_CANCEL_OPTION);
-		// if (answer == JOptionPane.CANCEL_OPTION) {
-		// return;
-		// } else if (answer == JOptionPane.YES_OPTION) {
-		// doFileSave();
-		// } else if (answer == JOptionPane.NO_OPTION) {
-		// /* do nothing special */
-		// } // if answer
-		// } // DataChanged
-
 		workingFile = null;
 		hexEditDisplay.clear();
 	}// closeFile
@@ -379,20 +363,6 @@ public class HexEditor {
 		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
 			return; // get out
 		} // if
-
-		// if (hexEditDisplay.isDataChanged()) {
-		// String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
-		// activeFileName);
-		// int answer = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
-		// JOptionPane.YES_NO_CANCEL_OPTION);
-		// if (answer == JOptionPane.CANCEL_OPTION) {
-		// return;
-		// } else if (answer == JOptionPane.YES_OPTION) {
-		// doFileSave();
-		// } else if (answer == JOptionPane.NO_OPTION) {
-		// /* do nothing special */
-		// } // if answer
-		// } // DataChanged
 
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		Dimension dim = frameBase.getSize();
@@ -407,12 +377,12 @@ public class HexEditor {
 		MenuUtility.saveRecentFileList(myPrefs, mnuFile);
 		myPrefs = null;
 
-//		closeFile();
 		System.exit(0);
 	}// appClose
 
 	private void appInit() {
-		log.setDoc(textLog.getStyledDocument());
+//		log.setDoc(textLog.getStyledDocument());
+		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
 		initActions();
 
@@ -664,8 +634,7 @@ public class HexEditor {
 		btnTestButton = new JButton("Test button");
 		btnTestButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
-				String msg;
-
+			
 				log.info("workingFile null: %s%n", workingFile == null);
 
 			}// actionPerformed
@@ -811,7 +780,7 @@ public class HexEditor {
 	}// initialize
 
 	//////////////////////////////////////////////////////////////////////////
-	private static final String EMPTY_STRING = "";
+//	private static final String EMPTY_STRING = "";
 
 	private static final String NO_FILE_SELECTED = "<No File Selected>";
 	private static final String DEFAULT_DIRECTORY = ".";

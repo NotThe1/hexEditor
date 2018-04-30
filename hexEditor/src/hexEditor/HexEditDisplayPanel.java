@@ -32,6 +32,8 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import myComponents.AppLogger;
+
 public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private static final long serialVersionUID = 1L;
 
