@@ -51,7 +51,6 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
-import myComponents.AppLogger;
 
 public class HexEditor {
 
@@ -659,6 +658,7 @@ public class HexEditor {
 		splitPane.setRightComponent(scrollPane);
 
 		textLog = new JTextPane();
+		textLog.setEditable(false);
 		scrollPane.setViewportView(textLog);
 		splitPane.setDividerLocation(250);
 
