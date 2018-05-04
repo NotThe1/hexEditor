@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.prefs.Preferences;
 
-import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -44,11 +43,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.DefaultEditorKit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
 
@@ -57,8 +52,8 @@ public class HexEditor {
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
 	UndoManager undoManager = new UndoManager();
-	AbstractAction actionUndo;
-	AbstractAction actionRedo;
+//	AbstractAction actionUndo;
+//	AbstractAction actionRedo;
 
 	String activeFileName;
 	String activeFilePath;
@@ -350,7 +345,15 @@ public class HexEditor {
 		} // DataChanged
 
 		return result;
-	}//
+	}//checkForDataChange
+	
+	private void doUndo() {
+		hexEditDisplay.undo();
+	}//doUndo
+
+	private void doRedo() {
+		hexEditDisplay.redo();
+	}//doRedo
 
 	public void closeFile() {
 		workingFile = null;
@@ -415,32 +418,32 @@ public class HexEditor {
 		mnuEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
 
 		//////////////////////////////////////////////////////////
-		actionUndo = new AbstractAction("Undo") {
-
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					if (undoManager.canUndo()) {
-						undoManager.undo();
-					} // if
-				} catch (CannotUndoException e) {
-				} // try
-			}// actionPerformed
-		};// new AbstractAction
-
-		actionRedo = new AbstractAction("Redo") {
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					if (undoManager.canRedo()) {
-						undoManager.redo();
-					} // if
-				} catch (CannotRedoException e) {
-				} // try
-			}// actionPerformed
-		};
+//		actionUndo = new AbstractAction("Undo") {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			public void actionPerformed(ActionEvent actionEvent) {
+//				try {
+//					if (undoManager.canUndo()) {
+//						undoManager.undo();
+//					} // if
+//				} catch (CannotUndoException e) {
+//				} // try
+//			}// actionPerformed
+//		};// new AbstractAction
+//
+//		actionRedo = new AbstractAction("Redo") {
+//			private static final long serialVersionUID = 1L;
+//
+//			public void actionPerformed(ActionEvent actionEvent) {
+//				try {
+//					if (undoManager.canRedo()) {
+//						undoManager.redo();
+//					} // if
+//				} catch (CannotRedoException e) {
+//				} // try
+//			}// actionPerformed
+//		};
 
 		// textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control M"), "cut");
 
@@ -570,12 +573,14 @@ public class HexEditor {
 
 		btnEditUndo = new JButton("");
 		btnEditUndo.setName(BTN_EDIT_UNDO);
+		btnEditUndo.addActionListener(applicationAdapter);
 		btnEditUndo.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/undo.png")));
 		btnEditUndo.setToolTipText("Undo");
 		toolBar.add(btnEditUndo);
 
 		btnEditRedo = new JButton("");
 		btnEditRedo.setName(BTN_EDIT_REDO);
+		btnEditRedo.addActionListener(applicationAdapter);
 		btnEditRedo.setToolTipText("Redo");
 		btnEditRedo.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/redo.png")));
 		toolBar.add(btnEditRedo);
@@ -633,9 +638,9 @@ public class HexEditor {
 		btnTestButton = new JButton("Test button");
 		btnTestButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
-			
-				log.info("workingFile null: %s%n", workingFile == null);
-
+				int loc = Integer.valueOf(textField.getText(), 16);
+				log.info("value = %04X%n",loc );
+				hexEditDisplay.test(loc);
 			}// actionPerformed
 		});
 		GridBagConstraints gbc_btnTestButton = new GridBagConstraints();
@@ -644,8 +649,8 @@ public class HexEditor {
 		gbc_btnTestButton.gridy = 0;
 		panel.add(btnTestButton, gbc_btnTestButton);
 
-		textField = new JTextField("C:\\Users\\admin\\git\\hexEditor\\hexEditor\\src\\resources\\test.bin");
-		textField.setToolTipText("Double click to pick a different file");
+		textField = new JTextField("0100");
+//		textField.setToolTipText("Double click to pick a different file");
 		textField.setColumns(10);
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
@@ -901,6 +906,17 @@ public class HexEditor {
 				case MNU_FILE_EXIT:
 					doFileExit();
 					break;
+					
+					//Undo/Redo 
+				case BTN_EDIT_UNDO:
+				case MNU_EDIT_UNDO:
+					doUndo();
+					break;
+				case BTN_EDIT_REDO:
+				case MNU_EDIT_REDO:
+					doRedo();
+					break;
+					
 				default:
 					log.addSpecial(actionEvent.getActionCommand());
 				}// switch
@@ -908,11 +924,11 @@ public class HexEditor {
 		}// actionPerformed
 	}// class AdapterAction
 
-	class AdapterUndoRedo implements UndoableEditListener {
-		@Override
-		public void undoableEditHappened(UndoableEditEvent undoableEditEvent) {
-			undoManager.addEdit(undoableEditEvent.getEdit());
-		}// undoableEditHappened
-	}// class AdapterUndoRedo
+//	class AdapterUndoRedo implements UndoableEditListener {
+//		@Override
+//		public void undoableEditHappened(UndoableEditEvent undoableEditEvent) {
+//			undoManager.addEdit(undoableEditEvent.getEdit());
+//		}// undoableEditHappened
+//	}// class AdapterUndoRedo
 
 }// class GUItemplate
