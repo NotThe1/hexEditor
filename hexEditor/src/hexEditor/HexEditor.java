@@ -402,7 +402,7 @@ public class HexEditor {
 		log.addInfo("Starting .........");
 		removeAllWorkingFiles();
 		// workingFile = makeWorkingFile();
-		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
+		loadFile(new File("C:\\Temp\\A\\File264.txt"));
 	}// appInit
 
 	private void initActions() {

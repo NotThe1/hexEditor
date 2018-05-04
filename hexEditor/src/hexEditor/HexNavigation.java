@@ -5,17 +5,22 @@ import javax.swing.text.Position;
 
 public class HexNavigation extends NavigationFilter {
 	int position;
-	boolean inFirstHalf = true;
+	// boolean inFirstHalf = true;
 	boolean inData, inAscii;
 	NavigationFilter.FilterBypass fb;
 	int dot;
 	Position.Bias bias;
+	private int dataLimit;
+	private int asciiLimit;
 
 	public void setDot(NavigationFilter.FilterBypass fb, int dot, Position.Bias bias) {
 		this.fb = fb;
 		this.dot = dot;
 		this.bias = bias;
 		setDataOrAscii(dot);
+		if (!inLimits()) {
+			return; //ignore
+		}// in limits
 		if (inData) {
 			doData();
 		} else if (inAscii) {
@@ -26,10 +31,10 @@ public class HexNavigation extends NavigationFilter {
 	}// setDot
 
 	private void doData() {
-//		System.out.println("[HexNavigation.doData] dot: " + dot);
+		// System.out.println("[HexNavigation.doData] dot: " + dot);
 
 		int position = dot % COLUMNS_PER_LINE; // Calculate the column position
-		inFirstHalf = position < MID_LINE_SPACE_DATA ? true : false;
+		boolean inFirstHalf = position < MID_LINE_SPACE_DATA ? true : false;
 		if (position == MID_LINE_SPACE_DATA - 1) {// actually the mid line break 23
 			dot += 2;
 		} else if (position == LAST_COLUMN_DATA) {// the last display character in the line.
@@ -48,15 +53,15 @@ public class HexNavigation extends NavigationFilter {
 	}// doData
 
 	private void doAscii() {
-//		System.out.println("[HexNavigation.doAscii] dot: " + dot);
+		// System.out.println("[HexNavigation.doAscii] dot: " + dot);
 		int position = (dot % COLUMNS_PER_LINE);
-		inFirstHalf = position < MID_LINE_SPACE_ASCII ? true : false;
+		// boolean inFirstHalf = position < MID_LINE_SPACE_ASCII ? true : false;
 
 		if (position == LAST_COLUMN_ASCII) {// the last display character in the line.
-			dot += (COLUMNS_PER_LINE - position)+ASCII_COL_START;
+			dot += (COLUMNS_PER_LINE - position) + ASCII_COL_START;
 		} else if (position == MID_LINE_SPACE_ASCII) {
 			dot += 1;
-		}//if
+		} // if
 		fb.setDot(dot, bias);
 	}// doAscii
 
@@ -71,6 +76,36 @@ public class HexNavigation extends NavigationFilter {
 		} // if
 		return;
 	}// InData
+
+	private boolean inLimits() {
+		boolean result;
+		if (inData && (dot < dataLimit)) {
+			result = true;
+		} else if (inAscii && (dot < asciiLimit)) {
+			result = true;
+		} else {
+			result = false;
+		} // if
+		return result;
+	}// inLimits
+
+	public void setLimits(int displayLimit) {
+		int numberOfCompleteLines = displayLimit / HEUtility.BYTES_PER_LINE;
+		int numberOfXtraBytes = displayLimit % HEUtility.BYTES_PER_LINE;
+		boolean overMidLine = numberOfXtraBytes >= HEUtility.MID_LINE_START;
+		int endOfCompleteLines = numberOfCompleteLines * HEUtility.COLUMNS_PER_LINE;
+
+		dataLimit = endOfCompleteLines + (numberOfXtraBytes * HEUtility.CHARS_PER_BYTE_DATA);
+		dataLimit = overMidLine ? dataLimit + 1 : dataLimit;
+		dataLimit--;
+
+		asciiLimit = (endOfCompleteLines + HEUtility.ASCII_COL_START)
+				+ (numberOfXtraBytes * HEUtility.CHARS_PER_BYTE_ASCII);
+		asciiLimit = overMidLine ? asciiLimit + 1 : asciiLimit;
+		asciiLimit--;
+		
+		System.out.printf("[setLimits] dataLimit = %04x, asciiLimit = %04x%n",dataLimit,asciiLimit);
+	}// setLimits
 
 	public static final int BYTES_PER_LINE = HEUtility.BYTES_PER_LINE;
 

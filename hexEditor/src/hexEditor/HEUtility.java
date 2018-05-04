@@ -93,16 +93,16 @@ public class HEUtility {
 		 return ((lineNumber * BYTES_PER_LINE) + byteIndex) - ASCII_COL_START;
 	}// getAsciiSourceIndex
 
-	public static int getDataSourceIndex(int dataDot) {
-		 int position = dataDot % COLUMNS_PER_LINE; // Calculate the column position
-		 boolean pastMidLine = position > MID_LINE_SPACE_DATA;
-		 int lineNumber = dataDot / COLUMNS_PER_LINE;
-		 int rawByteIndex = pastMidLine? position - 1 : position; 
-		 int byteIndex = rawByteIndex / CHARS_PER_BYTE_DATA;
-		
-		 return (lineNumber * BYTES_PER_LINE) + byteIndex;
-
-	}// getAsciiSourceIndex
+//	public static int getDataSourceIndex(int dataDot) {
+//		 int position = dataDot % COLUMNS_PER_LINE; // Calculate the column position
+//		 boolean pastMidLine = position > MID_LINE_SPACE_DATA;
+//		 int lineNumber = dataDot / COLUMNS_PER_LINE;
+//		 int rawByteIndex = pastMidLine? position - 1 : position; 
+//		 int byteIndex = rawByteIndex / CHARS_PER_BYTE_DATA;
+//		
+//		 return (lineNumber * BYTES_PER_LINE) + byteIndex;
+//
+//	}// getAsciiSourceIndex
 	
 	public static int getSourceIndex(int dot) {
 		 int lineNumber = dot / COLUMNS_PER_LINE;
@@ -130,6 +130,7 @@ public class HEUtility {
 	/* Constants */
 
 	public static final int BYTES_PER_LINE = 16; // Number of bytes from source file to display on each line
+	public static final int MID_LINE_START = BYTES_PER_LINE/2; // 
 	/* Data Text Constants */
 
 	public static final int DATA_COL_START = 0;

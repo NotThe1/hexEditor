@@ -133,7 +133,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		clearAllDocs();
 
 		int sourceIndex = currentLineStart;// address to display
-		byte[] activeLine = new byte[LINE_SIZE];
+//		byte[] activeLine = new byte[LINE_SIZE];
 
 		String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X%n", currentExtent,
 				currentMax, currentLineStart);
@@ -144,6 +144,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		int bytesToRead = LINE_SIZE;
 		source.position(sourceIndex);
 		for (int i = 0; i < linesToDisplay; i++) {
+			byte[] activeLine = new byte[linesToDisplay];
 			source.get(activeLine, 0, bytesToRead);
 			byte[] processedData = applyChanges(activeLine, bytesToRead, sourceIndex);
 			addHexLineToDocument(sourceIndex, processedData);
@@ -158,7 +159,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				break;
 			} // if
 		} // for
-
+		
+		log.info("[fill()] sourceIndex = %1$d (0X%1$04X)%n",sourceIndex);
+		log.info("[fill()] sourceIndex-currentLineStart = %1$d (0X%1$04X)%n",sourceIndex-currentLineStart);
+		hexNavigation.setLimits(sourceIndex-currentLineStart);
 		setTextPanesCaretListeners(true);
 		textHex.setCaretPosition(0);
 		log.info("scrollBar.getValue() = %04X%n", scrollBar.getValue());

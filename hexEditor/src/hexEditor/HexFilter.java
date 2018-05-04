@@ -52,7 +52,8 @@ public class HexFilter extends DocumentFilter {
 
 				/* HexString representation */
 				Document doc = fb.getDocument();
-				String dataString = doc.getText(offset - 1, 3).trim();
+				int offsetTemp = offset == 0 ? offset : offset - 1;
+				String dataString = doc.getText(offsetTemp, 3).trim();
 				asciiForms.setString(dataString);
 
 				/* ascii representation */
