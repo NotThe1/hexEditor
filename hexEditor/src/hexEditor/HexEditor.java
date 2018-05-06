@@ -46,21 +46,19 @@ import javax.swing.border.BevelBorder;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.undo.UndoManager;
 
-
 public class HexEditor {
 
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
 	UndoManager undoManager = new UndoManager();
-//	AbstractAction actionUndo;
-//	AbstractAction actionRedo;
+	// AbstractAction actionUndo;
+	// AbstractAction actionRedo;
 
 	String activeFileName;
 	String activeFilePath;
 	String activeFileAbsolutePath;
 
 	File workingFile;
-
 
 	/**
 	 * Launch the application.
@@ -91,7 +89,7 @@ public class HexEditor {
 	}// ClearFile
 
 	private void setUIasFileActive() {
-//		displayFileName(activeFileName, activeFilePath);
+		// displayFileName(activeFileName, activeFilePath);
 		setAllActivityButtons(true);
 		setAllMenuActivity(true);
 
@@ -150,14 +148,14 @@ public class HexEditor {
 		} // for all menus
 
 	}// disableAllActivity
-	
+
 	private void setActiveFileInfo(File currentActiveFile) {
 		activeFileAbsolutePath = currentActiveFile.getAbsolutePath();
 		activeFilePath = currentActiveFile.getParent();
 		activeFileName = currentActiveFile.getName();
 		displayFileName(activeFileName, activeFilePath);
 
-	}//setActiveFileInfo
+	}// setActiveFileInfo
 
 	private void loadFile(File subjectFile) {
 
@@ -181,8 +179,8 @@ public class HexEditor {
 		log.info("Loading File -> %s%n", activeFileAbsolutePath);
 		setActivityStates(FILE_ACTIVE);
 
-//		log.info("activeFile: %s%n", activeFileAbsolutePath);
-//		log.info("workingFile: %s%n", workingFile.getAbsolutePath());
+		// log.info("activeFile: %s%n", activeFileAbsolutePath);
+		// log.info("workingFile: %s%n", workingFile.getAbsolutePath());
 		/////////////////////////////////////////////
 
 		try {
@@ -244,7 +242,7 @@ public class HexEditor {
 		File result = null;
 		try {
 			result = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-//			log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
+			// log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
 		} catch (IOException e) {
 			log.addError("failed to make WorkingFile", e.getMessage());
 			e.printStackTrace();
@@ -252,17 +250,17 @@ public class HexEditor {
 		return result;
 	}// makeWorkingFile
 
-//	private Path makeWorkingFile0() {
-//		Path result = null;
-//		try {
-//			result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-//			log.addInfo("Working file = " + result);
-//		} catch (IOException e) {
-//			log.addError("failed to make WorkingFile", e.getMessage());
-//			e.printStackTrace();
-//		} // try
-//		return result;
-//	}// makeWorkingFile
+	// private Path makeWorkingFile0() {
+	// Path result = null;
+	// try {
+	// result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
+	// log.addInfo("Working file = " + result);
+	// } catch (IOException e) {
+	// log.addError("failed to make WorkingFile", e.getMessage());
+	// e.printStackTrace();
+	// } // try
+	// return result;
+	// }// makeWorkingFile
 
 	private void doFileNew() {
 		log.addInfo("** [doFileNew] **");
@@ -345,15 +343,15 @@ public class HexEditor {
 		} // DataChanged
 
 		return result;
-	}//checkForDataChange
-	
+	}// checkForDataChange
+
 	private void doUndo() {
 		hexEditDisplay.undo();
-	}//doUndo
+	}// doUndo
 
 	private void doRedo() {
 		hexEditDisplay.redo();
-	}//doRedo
+	}// doRedo
 
 	public void closeFile() {
 		workingFile = null;
@@ -383,7 +381,7 @@ public class HexEditor {
 	}// appClose
 
 	private void appInit() {
-//		log.setDoc(textLog.getStyledDocument());
+		// log.setDoc(textLog.getStyledDocument());
 		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
 		initActions();
@@ -402,7 +400,9 @@ public class HexEditor {
 		log.addInfo("Starting .........");
 		removeAllWorkingFiles();
 		// workingFile = makeWorkingFile();
-		loadFile(new File("C:\\Temp\\A\\File264.txt"));
+		// loadFile(new File("C:\\Temp\\A\\File264.txt"));
+		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
+		;
 	}// appInit
 
 	private void initActions() {
@@ -418,32 +418,32 @@ public class HexEditor {
 		mnuEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
 
 		//////////////////////////////////////////////////////////
-//		actionUndo = new AbstractAction("Undo") {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			public void actionPerformed(ActionEvent actionEvent) {
-//				try {
-//					if (undoManager.canUndo()) {
-//						undoManager.undo();
-//					} // if
-//				} catch (CannotUndoException e) {
-//				} // try
-//			}// actionPerformed
-//		};// new AbstractAction
-//
-//		actionRedo = new AbstractAction("Redo") {
-//			private static final long serialVersionUID = 1L;
-//
-//			public void actionPerformed(ActionEvent actionEvent) {
-//				try {
-//					if (undoManager.canRedo()) {
-//						undoManager.redo();
-//					} // if
-//				} catch (CannotRedoException e) {
-//				} // try
-//			}// actionPerformed
-//		};
+		// actionUndo = new AbstractAction("Undo") {
+		//
+		// private static final long serialVersionUID = 1L;
+		//
+		// public void actionPerformed(ActionEvent actionEvent) {
+		// try {
+		// if (undoManager.canUndo()) {
+		// undoManager.undo();
+		// } // if
+		// } catch (CannotUndoException e) {
+		// } // try
+		// }// actionPerformed
+		// };// new AbstractAction
+		//
+		// actionRedo = new AbstractAction("Redo") {
+		// private static final long serialVersionUID = 1L;
+		//
+		// public void actionPerformed(ActionEvent actionEvent) {
+		// try {
+		// if (undoManager.canRedo()) {
+		// undoManager.redo();
+		// } // if
+		// } catch (CannotRedoException e) {
+		// } // try
+		// }// actionPerformed
+		// };
 
 		// textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control M"), "cut");
 
@@ -639,8 +639,9 @@ public class HexEditor {
 		btnTestButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				int loc = Integer.valueOf(textField.getText(), 16);
-				log.info("value = %04X%n",loc );
-				hexEditDisplay.test(loc);
+				int value = Integer.valueOf(textField1.getText(), 16);
+				log.info("Location: %04X, value = %02X%n", loc,value);
+				hexEditDisplay.test(loc,(byte) value);
 			}// actionPerformed
 		});
 		GridBagConstraints gbc_btnTestButton = new GridBagConstraints();
@@ -649,15 +650,39 @@ public class HexEditor {
 		gbc_btnTestButton.gridy = 0;
 		panel.add(btnTestButton, gbc_btnTestButton);
 
+		lblLocation = new JLabel("Location");
+		GridBagConstraints gbc_lblLocation = new GridBagConstraints();
+		gbc_lblLocation.insets = new Insets(0, 0, 5, 5);
+		gbc_lblLocation.anchor = GridBagConstraints.EAST;
+		gbc_lblLocation.gridx = 0;
+		gbc_lblLocation.gridy = 1;
+		panel.add(lblLocation, gbc_lblLocation);
+
 		textField = new JTextField("0100");
-//		textField.setToolTipText("Double click to pick a different file");
+		// textField.setToolTipText("Double click to pick a different file");
 		textField.setColumns(10);
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
 		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField.gridx = 1;
-		gbc_textField.gridy = 0;
+		gbc_textField.gridy = 1;
 		panel.add(textField, gbc_textField);
+
+		lblValue = new JLabel("value");
+		GridBagConstraints gbc_lblValue = new GridBagConstraints();
+		gbc_lblValue.insets = new Insets(0, 0, 0, 5);
+		gbc_lblValue.anchor = GridBagConstraints.EAST;
+		gbc_lblValue.gridx = 0;
+		gbc_lblValue.gridy = 2;
+		panel.add(lblValue, gbc_lblValue);
+
+		textField1 = new JTextField("FF");
+		textField1.setColumns(10);
+		GridBagConstraints gbc_textField1 = new GridBagConstraints();
+		gbc_textField1.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField1.gridx = 1;
+		gbc_textField1.gridy = 2;
+		panel.add(textField1, gbc_textField1);
 
 		scrollPane = new JScrollPane();
 		splitPane.setRightComponent(scrollPane);
@@ -785,7 +810,7 @@ public class HexEditor {
 	}// initialize
 
 	//////////////////////////////////////////////////////////////////////////
-//	private static final String EMPTY_STRING = "";
+	// private static final String EMPTY_STRING = "";
 
 	private static final String NO_FILE_SELECTED = "<No File Selected>";
 	private static final String DEFAULT_DIRECTORY = ".";
@@ -868,6 +893,9 @@ public class HexEditor {
 	private JTextField textField;
 	private JScrollPane scrollPane;
 	private JTextPane textLog;
+	private JTextField textField1;
+	private JLabel lblLocation;
+	private JLabel lblValue;
 	//////////////////////////////////////////////////////////////////////////
 
 	class ApplicationAdapter implements ActionListener {// , ListSelectionListener
@@ -906,8 +934,8 @@ public class HexEditor {
 				case MNU_FILE_EXIT:
 					doFileExit();
 					break;
-					
-					//Undo/Redo 
+
+				// Undo/Redo
 				case BTN_EDIT_UNDO:
 				case MNU_EDIT_UNDO:
 					doUndo();
@@ -916,7 +944,7 @@ public class HexEditor {
 				case MNU_EDIT_REDO:
 					doRedo();
 					break;
-					
+
 				default:
 					log.addSpecial(actionEvent.getActionCommand());
 				}// switch
@@ -924,11 +952,11 @@ public class HexEditor {
 		}// actionPerformed
 	}// class AdapterAction
 
-//	class AdapterUndoRedo implements UndoableEditListener {
-//		@Override
-//		public void undoableEditHappened(UndoableEditEvent undoableEditEvent) {
-//			undoManager.addEdit(undoableEditEvent.getEdit());
-//		}// undoableEditHappened
-//	}// class AdapterUndoRedo
+	// class AdapterUndoRedo implements UndoableEditListener {
+	// @Override
+	// public void undoableEditHappened(UndoableEditEvent undoableEditEvent) {
+	// undoManager.addEdit(undoableEditEvent.getEdit());
+	// }// undoableEditHappened
+	// }// class AdapterUndoRedo
 
 }// class GUItemplate

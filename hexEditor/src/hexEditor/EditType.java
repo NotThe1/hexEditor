@@ -1,5 +1,5 @@
 package hexEditor;
 
 public enum EditType {
-	ADD, REMOVE, REPLACE,INVALID
+	ADD, REMOVE, REPLACE,INVALID,UNDO_REDO
 }// enum EditType

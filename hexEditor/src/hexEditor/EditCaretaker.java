@@ -7,18 +7,41 @@ public class EditCaretaker {
 	private static int currentIndex = 0;
 	private List<EditAtom> edits = new ArrayList<EditAtom>();
 
-	// public void addEdit(EditAtom edit) {
-	// edits.add(edit);
-	// currentIndex= getLastIndex();
-	// }// add
+	public boolean canUndo() {
+		try {
+			return edits.get(currentIndex - 1).canUndo();
+		} catch (IndexOutOfBoundsException e) {
+			return false;
+		} // try
+	}//canUndo
+
+	public EditAtom getUndo() {
+		EditAtom priorEdit = edits.get(--currentIndex);
+		return new EditAtom(EditType.UNDO_REDO, priorEdit.getLocation(), priorEdit.getFrom(), (byte) 0X00);
+	}// getUndo
+	
+	public boolean canRedo() {
+		try {
+			return edits.get(currentIndex + 1).canUndo();
+		} catch (IndexOutOfBoundsException e) {
+			return false;
+		} // try
+	}//canUndo
+
+
+
+	public EditAtom getRedo() {
+		EditAtom priorEdit = edits.get(++currentIndex);
+		return new EditAtom(EditType.UNDO_REDO, priorEdit.getLocation(), priorEdit.getTo(), (byte) 0X00);
+	}// getUndo
 
 	public void addEdit(EditAtom edit) {
-		if (edit.combineEdits(getLastEdit())){
+		if (edit.combineEdits(getLastEdit())) {
 			edits.set(getLastIndex(), edit);
-		}else {
-			 edits.add(edit);
-			 currentIndex= getLastIndex();
-		}//if combine
+		} else {
+			edits.add(edit);
+			currentIndex = getLastIndex();
+		} // if combine
 	}// add
 
 	public void clear() {
@@ -61,15 +84,14 @@ public class EditCaretaker {
 	public int getLastIndex() {
 		return edits.size() - 1;
 	}// getLastIndex
-	
-	public EditAtom getLastEdit() {		
-		try {			
+
+	public EditAtom getLastEdit() {
+		try {
 			return edits.get(getLastIndex());
 		} catch (Exception e) {
 			return EditAtom.invalid();
 		} // try
-		
-		
-	}//getLastEdit
+
+	}// getLastEdit
 
 }// class EditCaretaker

@@ -104,7 +104,7 @@ public class HexNavigation extends NavigationFilter {
 		asciiLimit = overMidLine ? asciiLimit + 1 : asciiLimit;
 		asciiLimit--;
 		
-		System.out.printf("[setLimits] dataLimit = %04x, asciiLimit = %04x%n",dataLimit,asciiLimit);
+//		System.out.printf("[setLimits] dataLimit = %04x, asciiLimit = %04x%n",dataLimit,asciiLimit);
 	}// setLimits
 
 	public static final int BYTES_PER_LINE = HEUtility.BYTES_PER_LINE;
