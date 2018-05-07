@@ -9,16 +9,17 @@ public class EditCaretaker {
 
 	public boolean canUndo() {
 		try {
-			return edits.get(currentIndex - 1).canUndo();
+			return edits.get(currentIndex ).canUndo();
 		} catch (IndexOutOfBoundsException e) {
 			return false;
 		} // try
 	}//canUndo
 
 	public EditAtom getUndo() {
-		EditAtom priorEdit = edits.get(--currentIndex);
-		return new EditAtom(EditType.UNDO_REDO, priorEdit.getLocation(), priorEdit.getFrom(), (byte) 0X00);
+		EditAtom priorEdit = edits.get(currentIndex--);
+		return new EditAtom(EditType.UNDO_REDO, priorEdit.getLocation(), (byte) 0X00, priorEdit.getFrom(),priorEdit.getSource());
 	}// getUndo
+	
 	
 	public boolean canRedo() {
 		try {
@@ -28,11 +29,9 @@ public class EditCaretaker {
 		} // try
 	}//canUndo
 
-
-
 	public EditAtom getRedo() {
 		EditAtom priorEdit = edits.get(++currentIndex);
-		return new EditAtom(EditType.UNDO_REDO, priorEdit.getLocation(), priorEdit.getTo(), (byte) 0X00);
+		return new EditAtom(EditType.UNDO_REDO, priorEdit.getLocation(), (byte) 0X00, priorEdit.getTo(),priorEdit.getSource());
 	}// getUndo
 
 	public void addEdit(EditAtom edit) {

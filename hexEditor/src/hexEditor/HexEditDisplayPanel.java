@@ -65,8 +65,24 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			currentLineStart = location;
 			scrollBar.setValue(location / LINE_SIZE);
 		} // if visible
+		log.addSpecial(String.format("currentLineStart = %04X", currentLineStart));
+		int displacement = location- currentLineStart;
+		log.addSpecial(String.format("Offset = %04X",displacement));
+		int line =displacement/LINE_SIZE;
+		log.addSpecial(String.format("line = %04X",line));
+		int lineStart =displacement/LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
+		log.addSpecial(String.format("lineStart = %04X",lineStart));
+		int  bytePosition = displacement % LINE_SIZE;
+		log.addSpecial(String.format("bytePosition = %X",bytePosition));
+		int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START?1:0;
+		log.addSpecial(String.format("pastMidLine = %s",midLineAdjusment));
+		int  dataPosition = lineStart + (bytePosition * HEUtility.CHARS_PER_BYTE_DATA) + midLineAdjusment;
+		log.addSpecial(String.format("dataPosition = %X",dataPosition));
+		int  asciiPosition = lineStart + HEUtility.ASCII_COL_START+(bytePosition * HEUtility.CHARS_PER_BYTE_ASCII) + midLineAdjusment;
+		log.addSpecial(String.format("dataPosition = %X",dataPosition));
 		fillPane();
-		// textHex.setCaretPosition(position);
+//		 textHex.setCaretPosition(dataPosition);
+		 textHex.setCaretPosition(asciiPosition);
 	}//
 
 	@Override
@@ -99,10 +115,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		return this.currentLineStart;
 	}// getCurrentLineStart
 
-	public void updateValue(int dot, byte newValue) {
+	public void updateValue(int dot, byte newValue,String panelSource) {
 		int location = HEUtility.getSourceIndex(dot) + currentLineStart;
 
-		EditAtom editAtom = new EditAtom(location, source.get(location), newValue);
+		EditAtom editAtom = new EditAtom(location, source.get(location), newValue,panelSource);
 		editCaretaker.addEdit(editAtom);
 
 		log.addInfo(String.format("[HexEditDisplayPanel.updateData] newValue %02X, offset = %04X", newValue, location));
@@ -131,16 +147,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		return ans;
 	}// redo
 
-	// public void changeSource(int location, byte newValue) {
-	// source.put(location, newValue);
-	// if (!isVisible(location)) {
-	// currentLineStart = location;
-	// scrollBar.setValue(location / LINE_SIZE);
-	// } // if visible
-	// fillPane();
-	// // textHex.setCaretPosition(position);
-	//
-	// }// changeSource
 
 	public void changeSource(EditAtom change) {
 		if (!change.getEditType().equals(EditType.UNDO_REDO)) {

@@ -6,16 +6,22 @@ public class EditAtom {
 	private int location;
 	private byte from;
 	private byte to;
+	private String panelSource;
 
 	public EditAtom(int location, byte from, byte to) {
-		this(EditType.REPLACE, location, from, to);
+		this(EditType.REPLACE, location, from, to,SOURCE_HEX);
 	}// Constructor
 
-	public EditAtom(EditType editType, int location, byte from, byte to) {
+	public EditAtom(int location, byte from, byte to,String panelSource) {
+		this(EditType.REPLACE, location, from, to,panelSource);
+	}// Constructor
+
+	public EditAtom(EditType editType, int location, byte from, byte to,String panelSource) {
 		this.editType = editType;
 		this.location = location;
 		this.from = from;
 		this.to = to;
+		this.panelSource= panelSource;
 	}// Constructor
 	/*--*/
 
@@ -29,7 +35,7 @@ public class EditAtom {
 	}// combineEdits
 
 	public static EditAtom invalid() {
-		return new EditAtom(EditType.INVALID, -1, (byte) 0x00, (byte) 0X00);
+		return new EditAtom(EditType.INVALID, -1, (byte) 0x00, (byte) 0X00,SOURCE_UNKNOWN);
 	}// invalid
 
 	public EditType getEditType() {
@@ -47,6 +53,10 @@ public class EditAtom {
 	public byte getTo() {
 		return to;
 	}// getTo
+	
+	public String getSource() {
+		return panelSource;
+	}// getSource
 
 	public String toString() {
 		return String.format("Type: %s, Location: %04X, From %02X, to %02X.", editType, location, from, to);
@@ -83,5 +93,10 @@ public class EditAtom {
 		}// switch
 		return ans;
 	}//canUndo
+	
+	public static final String SOURCE_HEX = "hex";
+	public static final String SOURCE_ASCII = "ascii";
+	public static final String SOURCE_UNKNOWN = "unknown";
+	
 
 }// class EditAtom

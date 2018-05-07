@@ -61,7 +61,7 @@ public class HexFilter extends DocumentFilter {
 				fb.replace(asciiDot, length + 1, asciiForms.getAsciiForm(), HEUtility.asciiAttributes);
 
 				/* replace value in original map */
-				host.updateValue(offset, asciiForms.getByteForm());
+				host.updateValue(offset, asciiForms.getByteForm(),EditAtom.SOURCE_HEX);
 				dataChanged = true;
 				/* replace value in original map */
 
@@ -75,7 +75,7 @@ public class HexFilter extends DocumentFilter {
 				fb.replace(offset, length + 1, text, HEUtility.asciiAttributes);
 
 				/* replace value in original map */
-				host.updateValue(offset, asciiForms.getByteForm());
+				host.updateValue(offset, asciiForms.getByteForm(),EditAtom.SOURCE_ASCII);
 				dataChanged = true;
 				/* replace value in original map */
 			} else {
