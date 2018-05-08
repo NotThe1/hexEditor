@@ -4,8 +4,6 @@ import javax.swing.text.NavigationFilter;
 import javax.swing.text.Position;
 
 public class HexNavigation extends NavigationFilter {
-	int position;
-	// boolean inFirstHalf = true;
 	boolean inData, inAscii;
 	NavigationFilter.FilterBypass fb;
 	int dot;

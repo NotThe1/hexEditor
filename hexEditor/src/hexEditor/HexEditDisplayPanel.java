@@ -160,7 +160,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		} // if visible
 		
 		int displacement = location- currentLineStart;
-		int line =displacement/LINE_SIZE;
+//		int line =displacement/LINE_SIZE;
 		int lineStart =displacement/LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
 		int  bytePosition = displacement % LINE_SIZE;
 		int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START?1:0;

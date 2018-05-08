@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EditCaretaker {
-	private static int currentIndex = 0;
+	private  int currentIndex = 0;
 	private List<EditAtom> edits = new ArrayList<EditAtom>();
 
 	public boolean canUndo() {

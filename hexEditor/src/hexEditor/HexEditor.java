@@ -204,7 +204,7 @@ public class HexEditor {
 	}// loadFile
 
 	// ---------------------------------------------------------
-	class TempFilter implements FilenameFilter {
+	static class TempFilter implements FilenameFilter {
 
 		@Override
 		public boolean accept(File dir, String name) {
@@ -220,11 +220,16 @@ public class HexEditor {
 	private void removeAllWorkingFiles() {
 		File tempDir = new File(System.getProperty("java.io.tmpdir"));
 		File[] tempFiles = tempDir.listFiles(new TempFilter());
+
+		if (tempFiles == null) {
+			return;
+		} // if
 		for (File file : tempFiles) {
 			log.addInfo("Deleting file: " + file.getName());
-			file.delete();
-		} // for
-
+			if (!file.delete()) {
+				log.error("Bad Delete" + file.getName());
+			} // if bad delete
+		} // if not null
 	}// removeAllTempFiles
 
 	private File makeWorkingFile() {
@@ -238,7 +243,6 @@ public class HexEditor {
 		} // try
 		return result;
 	}// makeWorkingFile
-
 
 	private void doFileOpen() {
 		JFileChooser chooser = new JFileChooser(activeFilePath);
@@ -355,7 +359,6 @@ public class HexEditor {
 		// log.setDoc(textLog.getStyledDocument());
 		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
-//		initActions();
 
 		/* Reestablish state info */
 
@@ -376,23 +379,6 @@ public class HexEditor {
 		// loadFile(new File("C:\\Temp\\A\\emojie.txt"));
 		;
 	}// appInit
-
-//	private void initActions() {
-//		/* setup action for standard edit behaviors */
-//
-//		btnEditCut.addActionListener(new DefaultEditorKit.CutAction());
-//		mnuEditCut.addActionListener(new DefaultEditorKit.CutAction());
-//
-//		btnEditCopy.addActionListener(new DefaultEditorKit.CopyAction());
-//		mnuEditCut.addActionListener(new DefaultEditorKit.CopyAction());
-//
-//		btnEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
-//		mnuEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
-//
-//
-//		// textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control M"), "cut");
-//
-//	}// initActions
 
 	public HexEditor() {
 		initialize();
@@ -485,29 +471,6 @@ public class HexEditor {
 		separator_4.setOrientation(SwingConstants.VERTICAL);
 		toolBar.add(separator_4);
 
-//		btnEditCut = new JButton("");
-//		btnEditCut.setToolTipText("Cut");
-//		btnEditCut.setName(BTN_EDIT_CUT);
-//		btnEditCut.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/cut.png")));
-//		toolBar.add(btnEditCut);
-//
-//		btnEditCopy = new JButton("");
-//		btnEditCopy.setName(BTN_EDIT_COPY);
-//		btnEditCopy.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/copy.png")));
-//		btnEditCopy.setToolTipText("Copy");
-//		toolBar.add(btnEditCopy);
-//
-//		btnEditPaste = new JButton("");
-//		btnEditPaste.setName(BTN_EDIT_PASTE);
-//		btnEditPaste.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/paste.png")));
-//		btnEditPaste.setToolTipText("Paste");
-//		toolBar.add(btnEditPaste);
-//
-//		JSeparator separator_5 = new JSeparator();
-//		separator_5.setPreferredSize(new Dimension(10, 0));
-//		separator_5.setOrientation(SwingConstants.VERTICAL);
-//		toolBar.add(separator_5);
-//
 		btnEditUndo = new JButton("");
 		btnEditUndo.setName(BTN_EDIT_UNDO);
 		btnEditUndo.addActionListener(applicationAdapter);
@@ -596,7 +559,6 @@ public class HexEditor {
 		panel.add(lblLocation, gbc_lblLocation);
 
 		textField = new JTextField("0100");
-		// textField.setToolTipText("Double click to pick a different file");
 		textField.setColumns(10);
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
@@ -708,24 +670,6 @@ public class HexEditor {
 		mnuEdit = new JMenu("Edit");
 		menuBar.add(mnuEdit);
 
-//		mnuEditCut = new JMenuItem("Cut");
-//		mnuEditCut.setName(MNU_EDIT_CUT);
-//		mnuEditCut.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/cut.png")));
-//		mnuEdit.add(mnuEditCut);
-//
-//		mnuEditCopy = new JMenuItem("Copy");
-//		mnuEditCopy.setName(MNU_EDIT_COPY);
-//		mnuEditCopy.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/copy.png")));
-//		mnuEdit.add(mnuEditCopy);
-//
-//		mnuEditPaste = new JMenuItem("Paste");
-//		mnuEditPaste.setName(MNU_EDIT_PASTE);
-//		mnuEditPaste.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/paste.png")));
-//		mnuEdit.add(mnuEditPaste);
-//
-//		JSeparator separator_6 = new JSeparator();
-//		mnuEdit.add(separator_6);
-
 		mnuEditUndo = new JMenuItem("Undo");
 		mnuEditUndo.setName(MNU_EDIT_UNDO);
 		mnuEditUndo.addActionListener(applicationAdapter);
@@ -758,9 +702,6 @@ public class HexEditor {
 	private static final String MNU_FILE_PRINT = "mnuFilePrint";
 	private static final String MNU_FILE_EXIT = "mnuFileExit";
 
-//	private static final String MNU_EDIT_CUT = "mnuEditCut";
-//	private static final String MNU_EDIT_COPY = "mnuEditCopy";
-//	private static final String MNU_EDIT_PASTE = "mnuEditPaste";
 	private static final String MNU_EDIT_UNDO = "mnuEditUndo";
 	private static final String MNU_EDIT_REDO = "mnuEditREDO";
 
@@ -770,11 +711,7 @@ public class HexEditor {
 	private static final String BTN_FILE_SAVE = "btnFileSave";
 	private static final String BTN_FILE_SAVE_AS = "btnFileSaveAs";
 	private static final String BTN_FILE_PRINT = "btnFilePrint";
-	// private static final String BTN_FILE_EXIT = "btnFileExit";
 
-//	private static final String BTN_EDIT_CUT = "btnEditCut";
-//	private static final String BTN_EDIT_COPY = "btnEditCopy";
-//	private static final String BTN_EDIT_PASTE = "btnEditPaste";
 	private static final String BTN_EDIT_UNDO = "btnEditUndo";
 	private static final String BTN_EDIT_REDO = "btnEditREDO";
 
@@ -795,9 +732,6 @@ public class HexEditor {
 	private JButton btnFileSave;
 	private JButton btnEditSaveAs;
 	private JButton btnFilePrint;
-	private JButton btnEditCut;
-	private JButton btnEditCopy;
-	private JButton btnEditPaste;
 	private JButton btnEditUndo;
 	private JButton btnEditRedo;
 	private JMenuItem mnuRemoveRecentFiles;
@@ -807,11 +741,8 @@ public class HexEditor {
 	private JButton btnFileClose;
 	private JSeparator separator_7;
 	private JMenu mnuEdit;
-	private JMenuItem mnuEditCopy;
-	private JMenuItem mnuEditPaste;
 	private JMenuItem mnuEditUndo;
 	private JMenuItem mnuEditRedo;
-	private JMenuItem mnuEditCut;
 	private HexEditDisplayPanel hexEditDisplay;
 	private JPanel panelMain;
 	private JSplitPane splitPane;

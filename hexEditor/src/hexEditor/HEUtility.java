@@ -8,9 +8,9 @@ import javax.swing.text.StyleConstants;
 /* HexEditor Utility */
 public class HEUtility {
 
-	public static SimpleAttributeSet addressAttributes;
-	public static SimpleAttributeSet dataAttributes;
-	public static SimpleAttributeSet asciiAttributes;
+	 static SimpleAttributeSet addressAttributes;
+	 static SimpleAttributeSet dataAttributes;
+	 static SimpleAttributeSet asciiAttributes;
 
 	public static void makeStyles() {
 		SimpleAttributeSet baseAttributes = new SimpleAttributeSet();
