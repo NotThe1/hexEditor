@@ -143,6 +143,7 @@ public class HEUtility {
 	public static final int CHARS_PER_BYTE_ASCII = 1; // Number of chars used to display on each byte on a line
 	public static final int MID_LINE_SPACE_ASCII = ((BYTES_PER_LINE / 2) * CHARS_PER_BYTE_ASCII) + ASCII_COL_START;
 	public static final int LAST_COLUMN_ASCII = (BYTES_PER_LINE * CHARS_PER_BYTE_ASCII + 1) + ASCII_COL_START;
+	public static final int COLUMNS_FOR_ASCII = LAST_COLUMN_ASCII-ASCII_COL_START-1;
 
 	public static final int COLUMNS_PER_LINE = LAST_COLUMN_ASCII + 2;// CR,LF
 

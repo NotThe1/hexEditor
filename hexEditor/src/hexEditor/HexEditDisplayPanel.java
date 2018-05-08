@@ -158,8 +158,21 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			currentLineStart = location;
 			scrollBar.setValue(location / LINE_SIZE);
 		} // if visible
+		
+		int displacement = location- currentLineStart;
+		int line =displacement/LINE_SIZE;
+		int lineStart =displacement/LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
+		int  bytePosition = displacement % LINE_SIZE;
+		int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START?1:0;
+		int  position;
+		if (change.getSource().equals(EditAtom.SOURCE_DATA)) {
+			 position = lineStart + (bytePosition * HEUtility.CHARS_PER_BYTE_DATA) + midLineAdjusment;	
+		}else {
+			position = lineStart + HEUtility.ASCII_COL_START+(bytePosition * HEUtility.CHARS_PER_BYTE_ASCII) + midLineAdjusment;
+		}//if data or ascii
+
 		fillPane();
-		// textHex.setCaretPosition(position);
+		 textHex.setCaretPosition(position);
 
 	}// changeSource
 
@@ -168,10 +181,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	}// setDot
 
 	void fillPane() {
-		log.addInfo("[HexEditDisplayPanel.fillPane]");
 		if (currentExtent == 0) {
 			return;
 		} // if nothing to display
+//		log.addInfo("[HexEditDisplayPanel.fillPane]");
 
 		setTextPanesCaretListeners(false);
 		clearAllDocs();
@@ -179,24 +192,19 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		int sourceIndex = currentLineStart;// address to display
 		// byte[] activeLine = new byte[LINE_SIZE];
 
-		String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X%n", currentExtent,
-				currentMax, currentLineStart);
-		log.addInfo(message);
+//		String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X%n", currentExtent,
+//				currentMax, currentLineStart);
+//		log.addInfo(message);
 
 		int linesToDisplay = Math.min(currentExtent, currentMax - (currentLineStart / LINE_SIZE));
 
 		int bytesToRead = LINE_SIZE;
 		source.position(sourceIndex);
 		for (int i = 0; i < linesToDisplay; i++) {
-			byte[] activeLine = new byte[linesToDisplay];
+			byte[] activeLine = new byte[bytesToRead];
 			source.get(activeLine, 0, bytesToRead);
-			byte[] processedData = applyChanges(activeLine, bytesToRead, sourceIndex);
-			addHexLineToDocument(sourceIndex, processedData);
+			addHexLineToDocument(sourceIndex, activeLine);
 			sourceIndex += bytesToRead;
-			if (bytesToRead < LINE_SIZE) {
-				// leave the byte count for the last sector set in bytesToRead
-				break;
-			} // if
 			bytesToRead = Math.min(source.remaining(), LINE_SIZE);
 			if (bytesToRead == 0) {
 				bytesToRead = LINE_SIZE;
@@ -204,24 +212,13 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			} // if
 		} // for
 
-		log.info("[fill()] sourceIndex = %1$d (0X%1$04X)%n", sourceIndex);
-		log.info("[fill()] sourceIndex-currentLineStart = %1$d (0X%1$04X)%n", sourceIndex - currentLineStart);
+//		log.info("[fill()] sourceIndex = %1$d (0X%1$04X)%n", sourceIndex);
+//		log.info("[fill()] sourceIndex-currentLineStart = %1$d (0X%1$04X)%n", sourceIndex - currentLineStart);
 		hexNavigation.setLimits(sourceIndex - currentLineStart);
 		setTextPanesCaretListeners(true);
 		textHex.setCaretPosition(0);
-		log.info("scrollBar.getValue() = %04X%n", scrollBar.getValue());
+//		log.info("scrollBar.getValue() = %04X%n", scrollBar.getValue());
 	}// fillPane
-
-	protected byte[] applyChanges(byte[] rawData, int bytesRead, int bufferAddress) {
-		// byte[] ans = rawData.clone();
-		// SortedMap<Integer, Byte> rowChanges = changes.subMap(bufferAddress, bufferAddress + bytesRead);
-		//
-		// if (rowChanges.size() != 0) {
-		// rowChanges.forEach((k, v) -> ans[(int) k - bufferAddress] = (byte) v);
-		// } // if need to update
-		// return ans;
-		return rawData;
-	}// applyChanges
 
 	public void clear() {
 		clearAllDocs();
@@ -279,25 +276,48 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	}// getAddress
 
 	private String getData(byte[] data) {
-		return String.format(FORMAT_DATA, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-				data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for (; i < data.length;i++) {
+			if (i == HEUtility.MID_LINE_START ) {
+				sb.append(SPACE);
+			}//if 
+			sb.append(String.format(FORMAT_DATA, data[i]));			
+		}//for
+		
+		int emptySpace = LAST_COLUMN_DATA - (sb.length()-1);
+		if(emptySpace != 0) {
+			String spaceFormat = "%" + emptySpace + "s";
+			sb.append(String.format(spaceFormat, SPACE));			
+		}//if -  need to pad
+		
+		return sb.toString();
+		
 	}// getData
 
 	private String getAscii(byte[] data) {
 		StringBuilder sb = new StringBuilder();
 
 		byte b;
-		for (int i = 0; i < LINE_SIZE; i++) {
-			if (i == 8) {
+		int i = 0;
+		for (; i < data.length;i++) {
+			if (i == HEUtility.MID_LINE_START ) {
 				sb.append(SPACE);
-			} //
+			}//if 
 			b = data[i];
 			if ((b >= 0X20) && (b <= 126)) {
 				sb.append((char) b);
 			} else {
 				sb.append(UNPRINTABLE);
 			} // if printable
-		} // for
+		}//for
+
+		int emptySpace = COLUMNS_FOR_ASCII - (sb.length()-1);
+		if(emptySpace != 0) {
+			String spaceFormat = "%" + emptySpace + "s";
+			sb.append(String.format(spaceFormat, SPACE));			
+		}//if -  need to pad
+		
 		return sb.toString();
 	}// getAscii
 
@@ -489,11 +509,13 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		add(scrollBar, gbc_scrollBar);
 	}// initialize
 
-	private static final String FORMAT_DATA = "%02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X ";
+//	private static final String FORMAT_DATA = "%02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X ";
+	private static final String FORMAT_DATA = "%02X ";
 	private static final String FORMAT_ADDR = "%08X:";
 
 	private static final int LINE_SIZE = HEUtility.BYTES_PER_LINE;
 	private static final int LAST_COLUMN_DATA = HEUtility.LAST_COLUMN_DATA;
+	private static final int COLUMNS_FOR_ASCII = HEUtility.COLUMNS_FOR_ASCII;
 	private static final int COLUMNS_PER_LINE = HEUtility.COLUMNS_PER_LINE;
 	public static final int BYTES_PER_LINE_ADDR = HEUtility.BYTES_PER_LINE_ADDR;
 

@@ -9,7 +9,7 @@ public class EditAtom {
 	private String panelSource;
 
 	public EditAtom(int location, byte from, byte to) {
-		this(EditType.REPLACE, location, from, to,SOURCE_HEX);
+		this(EditType.REPLACE, location, from, to,SOURCE_DATA);
 	}// Constructor
 
 	public EditAtom(int location, byte from, byte to,String panelSource) {
@@ -94,7 +94,7 @@ public class EditAtom {
 		return ans;
 	}//canUndo
 	
-	public static final String SOURCE_HEX = "hex";
+	public static final String SOURCE_DATA = "data";
 	public static final String SOURCE_ASCII = "ascii";
 	public static final String SOURCE_UNKNOWN = "unknown";
 	

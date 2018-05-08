@@ -43,16 +43,11 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.undo.UndoManager;
 
 public class HexEditor {
 
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
-	UndoManager undoManager = new UndoManager();
-	// AbstractAction actionUndo;
-	// AbstractAction actionRedo;
 
 	String activeFileName;
 	String activeFilePath;
@@ -81,20 +76,15 @@ public class HexEditor {
 		setAllActivityButtons(false);
 		setAllMenuActivity(false, mnuRemoveRecentFiles, mnuFileExit);
 
-		mnuFileNew.setEnabled(true);
-		btnFileNew.setEnabled(true);
 		mnuFileOpen.setEnabled(true);
 		btnFileOpen.setEnabled(true);
 		hexEditDisplay.clear();
 	}// ClearFile
 
 	private void setUIasFileActive() {
-		// displayFileName(activeFileName, activeFilePath);
 		setAllActivityButtons(true);
 		setAllMenuActivity(true);
 
-		mnuFileNew.setEnabled(false);
-		btnFileNew.setEnabled(false);
 		mnuFileOpen.setEnabled(false);
 		btnFileOpen.setEnabled(false);
 
@@ -103,7 +93,6 @@ public class HexEditor {
 	private void displayFileName(String fileName, String filePath) {
 		lblFileName.setText(fileName);
 		lblFileName.setToolTipText(filePath);
-		// lblFileName.setForeground(Color.BLACK);
 	}// displayFileName
 
 	private void setActivityStates(String activity) {
@@ -250,25 +239,8 @@ public class HexEditor {
 		return result;
 	}// makeWorkingFile
 
-	// private Path makeWorkingFile0() {
-	// Path result = null;
-	// try {
-	// result = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-	// log.addInfo("Working file = " + result);
-	// } catch (IOException e) {
-	// log.addError("failed to make WorkingFile", e.getMessage());
-	// e.printStackTrace();
-	// } // try
-	// return result;
-	// }// makeWorkingFile
-
-	private void doFileNew() {
-		log.addInfo("** [doFileNew] **");
-	}// doFileNew
 
 	private void doFileOpen() {
-		log.addInfo("** [doFileOpen] **");
-
 		JFileChooser chooser = new JFileChooser(activeFilePath);
 		if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
 			return; // just get out
@@ -279,7 +251,6 @@ public class HexEditor {
 
 	private void doFileClose() {
 		log.addInfo("** [doFileClose] **");
-		// System.out.println("** [doFileClose] **");
 		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
 			return; // get out
 		} // if
@@ -384,7 +355,7 @@ public class HexEditor {
 		// log.setDoc(textLog.getStyledDocument());
 		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
-		initActions();
+//		initActions();
 
 		/* Reestablish state info */
 
@@ -402,52 +373,26 @@ public class HexEditor {
 		// workingFile = makeWorkingFile();
 		// loadFile(new File("C:\\Temp\\A\\File264.txt"));
 		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
+		// loadFile(new File("C:\\Temp\\A\\emojie.txt"));
 		;
 	}// appInit
 
-	private void initActions() {
-		/* setup action for standard edit behaviors */
-
-		btnEditCut.addActionListener(new DefaultEditorKit.CutAction());
-		mnuEditCut.addActionListener(new DefaultEditorKit.CutAction());
-
-		btnEditCopy.addActionListener(new DefaultEditorKit.CopyAction());
-		mnuEditCut.addActionListener(new DefaultEditorKit.CopyAction());
-
-		btnEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
-		mnuEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
-
-		//////////////////////////////////////////////////////////
-		// actionUndo = new AbstractAction("Undo") {
-		//
-		// private static final long serialVersionUID = 1L;
-		//
-		// public void actionPerformed(ActionEvent actionEvent) {
-		// try {
-		// if (undoManager.canUndo()) {
-		// undoManager.undo();
-		// } // if
-		// } catch (CannotUndoException e) {
-		// } // try
-		// }// actionPerformed
-		// };// new AbstractAction
-		//
-		// actionRedo = new AbstractAction("Redo") {
-		// private static final long serialVersionUID = 1L;
-		//
-		// public void actionPerformed(ActionEvent actionEvent) {
-		// try {
-		// if (undoManager.canRedo()) {
-		// undoManager.redo();
-		// } // if
-		// } catch (CannotRedoException e) {
-		// } // try
-		// }// actionPerformed
-		// };
-
-		// textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control M"), "cut");
-
-	}// initActions
+//	private void initActions() {
+//		/* setup action for standard edit behaviors */
+//
+//		btnEditCut.addActionListener(new DefaultEditorKit.CutAction());
+//		mnuEditCut.addActionListener(new DefaultEditorKit.CutAction());
+//
+//		btnEditCopy.addActionListener(new DefaultEditorKit.CopyAction());
+//		mnuEditCut.addActionListener(new DefaultEditorKit.CopyAction());
+//
+//		btnEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
+//		mnuEditPaste.addActionListener(new DefaultEditorKit.PasteAction());
+//
+//
+//		// textPaneLog.getInputMap().put(KeyStroke.getKeyStroke("control M"), "cut");
+//
+//	}// initActions
 
 	public HexEditor() {
 		initialize();
@@ -483,14 +428,6 @@ public class HexEditor {
 		gbc_toolBar.gridx = 0;
 		gbc_toolBar.gridy = 0;
 		frameBase.getContentPane().add(toolBar, gbc_toolBar);
-
-		btnFileNew = new JButton("");
-		btnFileNew.setToolTipText("New");
-		btnFileNew.setName(BTN_FILE_NEW);
-		btnFileNew.addActionListener(applicationAdapter);
-		btnFileNew.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/new.png")));
-
-		toolBar.add(btnFileNew);
 
 		btnFileOpen = new JButton("");
 		btnFileOpen.setName(BTN_FILE_OPEN);
@@ -548,29 +485,29 @@ public class HexEditor {
 		separator_4.setOrientation(SwingConstants.VERTICAL);
 		toolBar.add(separator_4);
 
-		btnEditCut = new JButton("");
-		btnEditCut.setToolTipText("Cut");
-		btnEditCut.setName(BTN_EDIT_CUT);
-		btnEditCut.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/cut.png")));
-		toolBar.add(btnEditCut);
-
-		btnEditCopy = new JButton("");
-		btnEditCopy.setName(BTN_EDIT_COPY);
-		btnEditCopy.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/copy.png")));
-		btnEditCopy.setToolTipText("Copy");
-		toolBar.add(btnEditCopy);
-
-		btnEditPaste = new JButton("");
-		btnEditPaste.setName(BTN_EDIT_PASTE);
-		btnEditPaste.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/paste.png")));
-		btnEditPaste.setToolTipText("Paste");
-		toolBar.add(btnEditPaste);
-
-		JSeparator separator_5 = new JSeparator();
-		separator_5.setPreferredSize(new Dimension(10, 0));
-		separator_5.setOrientation(SwingConstants.VERTICAL);
-		toolBar.add(separator_5);
-
+//		btnEditCut = new JButton("");
+//		btnEditCut.setToolTipText("Cut");
+//		btnEditCut.setName(BTN_EDIT_CUT);
+//		btnEditCut.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/cut.png")));
+//		toolBar.add(btnEditCut);
+//
+//		btnEditCopy = new JButton("");
+//		btnEditCopy.setName(BTN_EDIT_COPY);
+//		btnEditCopy.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/copy.png")));
+//		btnEditCopy.setToolTipText("Copy");
+//		toolBar.add(btnEditCopy);
+//
+//		btnEditPaste = new JButton("");
+//		btnEditPaste.setName(BTN_EDIT_PASTE);
+//		btnEditPaste.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/paste.png")));
+//		btnEditPaste.setToolTipText("Paste");
+//		toolBar.add(btnEditPaste);
+//
+//		JSeparator separator_5 = new JSeparator();
+//		separator_5.setPreferredSize(new Dimension(10, 0));
+//		separator_5.setOrientation(SwingConstants.VERTICAL);
+//		toolBar.add(separator_5);
+//
 		btnEditUndo = new JButton("");
 		btnEditUndo.setName(BTN_EDIT_UNDO);
 		btnEditUndo.addActionListener(applicationAdapter);
@@ -640,8 +577,8 @@ public class HexEditor {
 			public void actionPerformed(ActionEvent actionEvent) {
 				int loc = Integer.valueOf(textField.getText(), 16);
 				int value = Integer.valueOf(textField1.getText(), 16);
-				log.info("Location: %04X, value = %02X%n", loc,value);
-				hexEditDisplay.test(loc,(byte) value);
+				log.info("Location: %04X, value = %02X%n", loc, value);
+				hexEditDisplay.test(loc, (byte) value);
 			}// actionPerformed
 		});
 		GridBagConstraints gbc_btnTestButton = new GridBagConstraints();
@@ -705,12 +642,6 @@ public class HexEditor {
 
 		mnuFile = new JMenu("File");
 		menuBar.add(mnuFile);
-
-		mnuFileNew = new JMenuItem("New");
-		mnuFileNew.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/new.png")));
-		mnuFileNew.setName(MNU_FILE_NEW);
-		mnuFileNew.addActionListener(applicationAdapter);
-		mnuFile.add(mnuFileNew);
 
 		mnuFileOpen = new JMenuItem("Open...");
 		mnuFileOpen.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/open.png")));
@@ -777,23 +708,23 @@ public class HexEditor {
 		mnuEdit = new JMenu("Edit");
 		menuBar.add(mnuEdit);
 
-		mnuEditCut = new JMenuItem("Cut");
-		mnuEditCut.setName(MNU_EDIT_CUT);
-		mnuEditCut.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/cut.png")));
-		mnuEdit.add(mnuEditCut);
-
-		mnuEditCopy = new JMenuItem("Copy");
-		mnuEditCopy.setName(MNU_EDIT_COPY);
-		mnuEditCopy.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/copy.png")));
-		mnuEdit.add(mnuEditCopy);
-
-		mnuEditPaste = new JMenuItem("Paste");
-		mnuEditPaste.setName(MNU_EDIT_PASTE);
-		mnuEditPaste.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/paste.png")));
-		mnuEdit.add(mnuEditPaste);
-
-		JSeparator separator_6 = new JSeparator();
-		mnuEdit.add(separator_6);
+//		mnuEditCut = new JMenuItem("Cut");
+//		mnuEditCut.setName(MNU_EDIT_CUT);
+//		mnuEditCut.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/cut.png")));
+//		mnuEdit.add(mnuEditCut);
+//
+//		mnuEditCopy = new JMenuItem("Copy");
+//		mnuEditCopy.setName(MNU_EDIT_COPY);
+//		mnuEditCopy.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/copy.png")));
+//		mnuEdit.add(mnuEditCopy);
+//
+//		mnuEditPaste = new JMenuItem("Paste");
+//		mnuEditPaste.setName(MNU_EDIT_PASTE);
+//		mnuEditPaste.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/paste.png")));
+//		mnuEdit.add(mnuEditPaste);
+//
+//		JSeparator separator_6 = new JSeparator();
+//		mnuEdit.add(separator_6);
 
 		mnuEditUndo = new JMenuItem("Undo");
 		mnuEditUndo.setName(MNU_EDIT_UNDO);
@@ -820,7 +751,6 @@ public class HexEditor {
 	private static final String FILE_ACTIVE = "File Active";
 
 	/* constants for menus */
-	private static final String MNU_FILE_NEW = "mnuFileNew";
 	private static final String MNU_FILE_OPEN = "mnuFileOpen";
 	private static final String MNU_FILE_CLOSE = "mnuFileclose";
 	private static final String MNU_FILE_SAVE = "mnuFileSave";
@@ -828,14 +758,13 @@ public class HexEditor {
 	private static final String MNU_FILE_PRINT = "mnuFilePrint";
 	private static final String MNU_FILE_EXIT = "mnuFileExit";
 
-	private static final String MNU_EDIT_CUT = "mnuEditCut";
-	private static final String MNU_EDIT_COPY = "mnuEditCopy";
-	private static final String MNU_EDIT_PASTE = "mnuEditPaste";
+//	private static final String MNU_EDIT_CUT = "mnuEditCut";
+//	private static final String MNU_EDIT_COPY = "mnuEditCopy";
+//	private static final String MNU_EDIT_PASTE = "mnuEditPaste";
 	private static final String MNU_EDIT_UNDO = "mnuEditUndo";
 	private static final String MNU_EDIT_REDO = "mnuEditREDO";
 
 	/* constants for buttons */
-	private static final String BTN_FILE_NEW = "btnFileNew";
 	private static final String BTN_FILE_OPEN = "btnFileOpen";
 	private static final String BTN_FILE_CLOSE = "btnFileclose";
 	private static final String BTN_FILE_SAVE = "btnFileSave";
@@ -843,9 +772,9 @@ public class HexEditor {
 	private static final String BTN_FILE_PRINT = "btnFilePrint";
 	// private static final String BTN_FILE_EXIT = "btnFileExit";
 
-	private static final String BTN_EDIT_CUT = "btnEditCut";
-	private static final String BTN_EDIT_COPY = "btnEditCopy";
-	private static final String BTN_EDIT_PASTE = "btnEditPaste";
+//	private static final String BTN_EDIT_CUT = "btnEditCut";
+//	private static final String BTN_EDIT_COPY = "btnEditCopy";
+//	private static final String BTN_EDIT_PASTE = "btnEditPaste";
 	private static final String BTN_EDIT_UNDO = "btnEditUndo";
 	private static final String BTN_EDIT_REDO = "btnEditREDO";
 
@@ -854,8 +783,6 @@ public class HexEditor {
 
 	//////////////////////////////////////////////////////////////////////////
 	private JFrame frameBase;
-	private JMenuItem mnuFileNew;
-	private JButton btnFileNew;
 	private JLabel lblFileName;
 	private JToolBar toolBar;
 	private JMenuBar menuBar;
@@ -907,10 +834,6 @@ public class HexEditor {
 				loadFile(new File(actionEvent.getActionCommand()));
 			} else {
 				switch (name) {
-				case MNU_FILE_NEW:
-				case BTN_FILE_NEW:
-					doFileNew();
-					break;
 				case MNU_FILE_OPEN:
 				case BTN_FILE_OPEN:
 					doFileOpen();
