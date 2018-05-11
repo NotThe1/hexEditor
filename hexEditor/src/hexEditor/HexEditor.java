@@ -164,7 +164,10 @@ public class HexEditor {
 
 		workingFile = makeWorkingFile();
 		setActiveFileInfo(subjectFile);
-		log.info("Loading File -> %s%n", activeFileAbsolutePath);
+		
+		log.info("Loading File:");
+		log.info("       Path : %s%n", activeFileAbsolutePath);
+		log.info("       Size : %,d%n%n", fileLength);
 		setActivityStates(FILE_ACTIVE);
 
 		// log.info("activeFile: %s%n", activeFileAbsolutePath);
@@ -288,11 +291,6 @@ public class HexEditor {
 		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(), applicationAdapter);
 		doFileSave();
 	}// doFileSaveAs
-
-	private void doFilePrint() {
-		log.addInfo("** [doFilePrint] **");
-
-	}// doFilePrint
 
 	private void doFileExit() {
 		appClose();
@@ -455,18 +453,6 @@ public class HexEditor {
 		separator_3.setOrientation(SwingConstants.VERTICAL);
 		toolBar.add(separator_3);
 
-		btnFilePrint = new JButton("");
-		btnFilePrint.setToolTipText("Print");
-		btnFilePrint.setName(BTN_FILE_PRINT);
-		btnFilePrint.addActionListener(applicationAdapter);
-		btnFilePrint.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/print.png")));
-		toolBar.add(btnFilePrint);
-
-		JSeparator separator_4 = new JSeparator();
-		separator_4.setPreferredSize(new Dimension(5, 0));
-		separator_4.setOrientation(SwingConstants.VERTICAL);
-		toolBar.add(separator_4);
-
 		btnEditUndo = new JButton("");
 		btnEditUndo.setName(BTN_EDIT_UNDO);
 		btnEditUndo.addActionListener(applicationAdapter);
@@ -522,22 +508,13 @@ public class HexEditor {
 		gbc_splitPane.gridy = 0;
 		panelMain.add(splitPane, gbc_splitPane);
 
-		panel = new JPanel();
-		splitPane.setLeftComponent(panel);
-		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[] { 0, 0, 0 };
-		gbl_panel.rowHeights = new int[] { 0, 0, 0, 0 };
-		gbl_panel.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		panel.setLayout(gbl_panel);
-
 		scrollPane = new JScrollPane();
 		splitPane.setRightComponent(scrollPane);
 
 		textLog = new JTextPane();
 		textLog.setEditable(false);
 		scrollPane.setViewportView(textLog);
-		splitPane.setDividerLocation(250);
+		splitPane.setDividerLocation(1);
 
 		JPanel panelStatus = new JPanel();
 		panelStatus.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -582,15 +559,6 @@ public class HexEditor {
 		mnuFileSaveAs.setName(MNU_FILE_SAVE_AS);
 		mnuFileSaveAs.addActionListener(applicationAdapter);
 		mnuFile.add(mnuFileSaveAs);
-
-		JSeparator separator_2 = new JSeparator();
-		mnuFile.add(separator_2);
-
-		mnuFilePrint = new JMenuItem("Print...");
-		mnuFilePrint.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/print.png")));
-		mnuFilePrint.setName(MNU_FILE_PRINT);
-		mnuFilePrint.addActionListener(applicationAdapter);
-		mnuFile.add(mnuFilePrint);
 
 		JSeparator separatorFileStart = new JSeparator();
 		separatorFileStart.setName(MenuUtility.RECENT_FILES_START);
@@ -647,7 +615,6 @@ public class HexEditor {
 	private static final String MNU_FILE_CLOSE = "mnuFileclose";
 	private static final String MNU_FILE_SAVE = "mnuFileSave";
 	private static final String MNU_FILE_SAVE_AS = "mnuFileSaveAs";
-	private static final String MNU_FILE_PRINT = "mnuFilePrint";
 	private static final String MNU_FILE_EXIT = "mnuFileExit";
 
 	private static final String MNU_EDIT_UNDO = "mnuEditUndo";
@@ -658,7 +625,6 @@ public class HexEditor {
 	private static final String BTN_FILE_CLOSE = "btnFileclose";
 	private static final String BTN_FILE_SAVE = "btnFileSave";
 	private static final String BTN_FILE_SAVE_AS = "btnFileSaveAs";
-	private static final String BTN_FILE_PRINT = "btnFilePrint";
 
 	private static final String BTN_EDIT_UNDO = "btnEditUndo";
 	private static final String BTN_EDIT_REDO = "btnEditREDO";
@@ -675,11 +641,9 @@ public class HexEditor {
 	private JMenuItem mnuFileOpen;
 	private JMenuItem mnuFileSave;
 	private JMenuItem mnuFileSaveAs;
-	private JMenuItem mnuFilePrint;
 	private JButton btnFileOpen;
 	private JButton btnFileSave;
 	private JButton btnEditSaveAs;
-	private JButton btnFilePrint;
 	private JButton btnEditUndo;
 	private JButton btnEditRedo;
 	private JMenuItem mnuRemoveRecentFiles;
@@ -694,7 +658,6 @@ public class HexEditor {
 	private HexEditDisplayPanel hexEditDisplay;
 	private JPanel panelMain;
 	private JSplitPane splitPane;
-	private JPanel panel;
 	private JScrollPane scrollPane;
 	private JTextPane textLog;
 	//////////////////////////////////////////////////////////////////////////
@@ -724,10 +687,6 @@ public class HexEditor {
 				case BTN_FILE_SAVE_AS:
 					doFileSaveAs();
 					break;
-				case MNU_FILE_PRINT:
-				case BTN_FILE_PRINT:
-					doFilePrint();
-					break;
 				case MNU_FILE_EXIT:
 					doFileExit();
 					break;
@@ -749,11 +708,6 @@ public class HexEditor {
 		}// actionPerformed
 	}// class AdapterAction
 
-	// class AdapterUndoRedo implements UndoableEditListener {
-	// @Override
-	// public void undoableEditHappened(UndoableEditEvent undoableEditEvent) {
-	// undoManager.addEdit(undoableEditEvent.getEdit());
-	// }// undoableEditHappened
-	// }// class AdapterUndoRedo
+
 
 }// class GUItemplate

@@ -117,11 +117,12 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	public void updateValue(int dot, byte newValue, String panelSource) {
 		int location = HEUtility.getSourceIndex(dot) + currentLineStart;
+		byte oldValue = source.get(location);
 
-		EditAtom editAtom = new EditAtom(location, source.get(location), newValue, panelSource);
+		EditAtom editAtom = new EditAtom(location, oldValue, newValue, panelSource);
 		editCaretaker.addEdit(editAtom);
 
-		log.addInfo(String.format("[HexEditDisplayPanel.updateData] newValue %02X, offset = %04X", newValue, location));
+		log.addInfo(String.format("%s  location: %#X, from %02X, to %02X", editAtom.getEditType(), location, oldValue,newValue));
 		source.put(location, newValue);
 	}// updateSource
 
