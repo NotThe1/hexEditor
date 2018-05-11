@@ -38,7 +38,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
@@ -373,11 +372,8 @@ public class HexEditor {
 
 		log.addInfo("Starting .........");
 		removeAllWorkingFiles();
-		// workingFile = makeWorkingFile();
-		// loadFile(new File("C:\\Temp\\A\\File264.txt"));
 		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
-		// loadFile(new File("C:\\Temp\\A\\emojie.txt"));
-		;
+
 	}// appInit
 
 	public HexEditor() {
@@ -534,54 +530,6 @@ public class HexEditor {
 		gbl_panel.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
-
-		btnTestButton = new JButton("Test button");
-		btnTestButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				int loc = Integer.valueOf(textField.getText(), 16);
-				int value = Integer.valueOf(textField1.getText(), 16);
-				log.info("Location: %04X, value = %02X%n", loc, value);
-				hexEditDisplay.test(loc, (byte) value);
-			}// actionPerformed
-		});
-		GridBagConstraints gbc_btnTestButton = new GridBagConstraints();
-		gbc_btnTestButton.insets = new Insets(0, 0, 5, 5);
-		gbc_btnTestButton.gridx = 0;
-		gbc_btnTestButton.gridy = 0;
-		panel.add(btnTestButton, gbc_btnTestButton);
-
-		lblLocation = new JLabel("Location");
-		GridBagConstraints gbc_lblLocation = new GridBagConstraints();
-		gbc_lblLocation.insets = new Insets(0, 0, 5, 5);
-		gbc_lblLocation.anchor = GridBagConstraints.EAST;
-		gbc_lblLocation.gridx = 0;
-		gbc_lblLocation.gridy = 1;
-		panel.add(lblLocation, gbc_lblLocation);
-
-		textField = new JTextField("0100");
-		textField.setColumns(10);
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.insets = new Insets(0, 0, 5, 0);
-		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.gridx = 1;
-		gbc_textField.gridy = 1;
-		panel.add(textField, gbc_textField);
-
-		lblValue = new JLabel("value");
-		GridBagConstraints gbc_lblValue = new GridBagConstraints();
-		gbc_lblValue.insets = new Insets(0, 0, 0, 5);
-		gbc_lblValue.anchor = GridBagConstraints.EAST;
-		gbc_lblValue.gridx = 0;
-		gbc_lblValue.gridy = 2;
-		panel.add(lblValue, gbc_lblValue);
-
-		textField1 = new JTextField("FF");
-		textField1.setColumns(10);
-		GridBagConstraints gbc_textField1 = new GridBagConstraints();
-		gbc_textField1.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField1.gridx = 1;
-		gbc_textField1.gridy = 2;
-		panel.add(textField1, gbc_textField1);
 
 		scrollPane = new JScrollPane();
 		splitPane.setRightComponent(scrollPane);
@@ -747,13 +695,8 @@ public class HexEditor {
 	private JPanel panelMain;
 	private JSplitPane splitPane;
 	private JPanel panel;
-	private JButton btnTestButton;
-	private JTextField textField;
 	private JScrollPane scrollPane;
 	private JTextPane textLog;
-	private JTextField textField1;
-	private JLabel lblLocation;
-	private JLabel lblValue;
 	//////////////////////////////////////////////////////////////////////////
 
 	class ApplicationAdapter implements ActionListener {// , ListSelectionListener

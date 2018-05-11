@@ -58,32 +58,32 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private SimpleAttributeSet dataAttributes;
 	private SimpleAttributeSet asciiAttributes;
 
-	public void test(int location, byte value) {
-		source.put(location, value);
-		if (!isVisible(location)) {
-			currentLineStart = location;
-			scrollBar.setValue(location / LINE_SIZE);
-		} // if visible
-		log.addSpecial(String.format("currentLineStart = %04X", currentLineStart));
-		int displacement = location - currentLineStart;
-		log.addSpecial(String.format("Offset = %04X", displacement));
-		int line = displacement / LINE_SIZE;
-		log.addSpecial(String.format("line = %04X", line));
-		int lineStart = displacement / LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
-		log.addSpecial(String.format("lineStart = %04X", lineStart));
-		int bytePosition = displacement % LINE_SIZE;
-		log.addSpecial(String.format("bytePosition = %X", bytePosition));
-		int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START ? 1 : 0;
-		log.addSpecial(String.format("pastMidLine = %s", midLineAdjusment));
-		int dataPosition = lineStart + (bytePosition * HEUtility.CHARS_PER_BYTE_DATA) + midLineAdjusment;
-		log.addSpecial(String.format("dataPosition = %X", dataPosition));
-		int asciiPosition = lineStart + HEUtility.ASCII_COL_START + (bytePosition * HEUtility.CHARS_PER_BYTE_ASCII)
-				+ midLineAdjusment;
-		log.addSpecial(String.format("dataPosition = %X", dataPosition));
-		fillPane();
-		// textHex.setCaretPosition(dataPosition);
-		textHex.setCaretPosition(asciiPosition);
-	}//
+	// public void test(int location, byte value) {
+	// source.put(location, value);
+	// if (!isVisible(location)) {
+	// currentLineStart = location;
+	// scrollBar.setValue(location / LINE_SIZE);
+	// } // if visible
+	// log.addSpecial(String.format("currentLineStart = %04X", currentLineStart));
+	// int displacement = location - currentLineStart;
+	// log.addSpecial(String.format("Offset = %04X", displacement));
+	// int line = displacement / LINE_SIZE;
+	// log.addSpecial(String.format("line = %04X", line));
+	// int lineStart = displacement / LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
+	// log.addSpecial(String.format("lineStart = %04X", lineStart));
+	// int bytePosition = displacement % LINE_SIZE;
+	// log.addSpecial(String.format("bytePosition = %X", bytePosition));
+	// int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START ? 1 : 0;
+	// log.addSpecial(String.format("pastMidLine = %s", midLineAdjusment));
+	// int dataPosition = lineStart + (bytePosition * HEUtility.CHARS_PER_BYTE_DATA) + midLineAdjusment;
+	// log.addSpecial(String.format("dataPosition = %X", dataPosition));
+	// int asciiPosition = lineStart + HEUtility.ASCII_COL_START + (bytePosition * HEUtility.CHARS_PER_BYTE_ASCII)
+	// + midLineAdjusment;
+	// log.addSpecial(String.format("dataPosition = %X", dataPosition));
+	// fillPane();
+	// // textHex.setCaretPosition(dataPosition);
+	// textHex.setCaretPosition(asciiPosition);
+	// }//
 
 	@Override
 	public void run() {
@@ -153,11 +153,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		} // if proper type
 		int location = change.getLocation();
 		source.put(location, change.getTo());
-		int position = convertLocationToCaretPosition(location);
-
-//		fillPane();
-//		textHex.setCaretPosition(position);
-
+		convertLocationToCaretPosition(location);
 	}// changeSource
 
 	public int convertLocationToCaretPosition(int location, String source) {
@@ -186,7 +182,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	public int convertLocationToCaretPosition(int location) {
 		return convertLocationToCaretPosition(location, EditAtom.SOURCE_DATA);
-	}//convertLocationToCaretPosition
+	}// convertLocationToCaretPosition
 
 	public void setDot(int position) {
 		textHex.setCaretPosition(position);
@@ -196,7 +192,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		if (currentExtent == 0) {
 			return;
 		} // if nothing to display
-		// log.addInfo("[HexEditDisplayPanel.fillPane]");
+			// log.addInfo("[HexEditDisplayPanel.fillPane]");
 
 		setTextPanesCaretListeners(false);
 		clearAllDocs();
@@ -688,13 +684,9 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		@Override
 		public void valueChanged(HDNumberValueChangeEvent hDNumberValueChangeEvent) {
 			if (hDNumberValueChangeEvent.getSource().equals(hdAddress)) {
-				int position = convertLocationToCaretPosition(hDNumberValueChangeEvent.getNewValue());
-//				fillPane();
-//				textHex.setCaretPosition(position);
-
-			}
-
-		}//
+				convertLocationToCaretPosition(hDNumberValueChangeEvent.getNewValue());
+			} // if
+		}// valueChanged
 
 	}// class adapterHexEditDisplay
 
