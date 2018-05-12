@@ -227,7 +227,7 @@ public class HDNumberBox extends JPanel {
 	}// fireSeekValueChanged
 
 	// ---------------------------
-	class SeekDocument extends PlainDocument {
+	static class SeekDocument extends PlainDocument {
 		private static final long serialVersionUID = 1L;
 
 		private String inputPattern;

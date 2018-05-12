@@ -167,7 +167,7 @@ public class HexEditor {
 		
 		log.info("Loading File:");
 		log.info("       Path : %s%n", activeFileAbsolutePath);
-		log.info("       Size : %,d%n%n", fileLength);
+		log.info("       Size : %1$,d bytes  [%1$#X]%n%n", fileLength);
 		setActivityStates(FILE_ACTIVE);
 
 		// log.info("activeFile: %s%n", activeFileAbsolutePath);
@@ -353,7 +353,6 @@ public class HexEditor {
 	}// appClose
 
 	private void appInit() {
-		// log.setDoc(textLog.getStyledDocument());
 		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
 
@@ -370,7 +369,7 @@ public class HexEditor {
 
 		log.addInfo("Starting .........");
 		removeAllWorkingFiles();
-		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
+//		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
 
 	}// appInit
 
