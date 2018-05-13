@@ -35,7 +35,6 @@ public class AppLogger {
 	private JPopupMenu popupLog;
 	private AdapterLog logAdaper = new AdapterLog();
 	private String header;
-	
 
 	private static AppLogger instance = new AppLogger();
 
@@ -50,14 +49,14 @@ public class AppLogger {
 	public void setDoc(StyledDocument docLog) {
 		this.docLog = docLog;
 	}// setDoc
-	
+
 	public void setTextPane(JTextPane textPane) {
 		setTextPane(textPane, "Application Log");
 	}//
 
 	public void setTextPane(JTextPane textPane, String header) {
 		this.txtLog = textPane;
-		this.header=header;
+		this.header = header;
 		this.docLog = textPane.getStyledDocument();
 
 		popupLog = new JPopupMenu();
@@ -160,11 +159,12 @@ public class AppLogger {
 		insertListing(sb.toString(), attr);
 	}// addMeta
 
+	@Deprecated
 	public void addInfo(String... message) {
 		addMeta(attrBlack, message);
 	}// addInfo
 
-	public void info(String message) {
+	public void info(String... message) {
 		addMeta(attrBlack, message);
 	}// info
 
@@ -172,6 +172,11 @@ public class AppLogger {
 		insertListing(doFormat(format, args), attrBlack);
 	}// info
 
+	public void infof(String format, Object... args) {
+		insertListing(doFormat(format, args), attrBlack);
+	}// info
+
+	@Deprecated
 	public void addWarning(String... message) {
 		addMeta(attrBlue, message);
 	}// addWarning
@@ -180,10 +185,11 @@ public class AppLogger {
 		addMeta(attrBlue, message);
 	}// warn
 
-	public void warn(String format, Object... args) {
+	public void warnf(String format, Object... args) {
 		insertListing(doFormat(format, args), attrBlue);
 	}// warn
-
+	
+	@Deprecated
 	public void addError(String... message) {
 		addMeta(attrRed, message);
 	}// addError
@@ -192,10 +198,11 @@ public class AppLogger {
 		addMeta(attrRed, message);
 	}// error
 
-	public void error(String format, Object... args) {
+	public void errorf(String format, Object... args) {
 		insertListing(doFormat(format, args), attrRed);
 	}// error
 
+	@Deprecated
 	public void addSpecial(String... message) {
 		addMeta(attrTeal, message);
 	}// addSpecial
@@ -204,7 +211,7 @@ public class AppLogger {
 		addMeta(attrTeal, message);
 	}// special
 
-	public void special(String format, Object... args) {
+	public void specialf(String format, Object... args) {
 		insertListing(doFormat(format, args), attrTeal);
 	}// special
 

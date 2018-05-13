@@ -103,7 +103,7 @@ public class HexEditor {
 			setUIasFileActive();
 			break;
 		default:
-			log.addError("Bad Activity State -> " + activity);
+			log.errorf("Bad Activity State -> %s" , activity);
 		}// switch
 	}// setActivityStates
 
@@ -152,13 +152,13 @@ public class HexEditor {
 		long fileLength = subjectFile.length();
 		if (fileLength >= Integer.MAX_VALUE) {
 			Toolkit.getDefaultToolkit().beep();
-			log.warn("[HexEditPanelFile : loadData] file too large %,d%n", fileLength);
+			log.warnf("[HexEditPanelFile : loadData] file too large %,d%n", fileLength);
 			return;
 		} // if
 
 		if (fileLength <= 0) {
 			Toolkit.getDefaultToolkit().beep();
-			log.warn("[HexEditPanelFile : loadData] file is empty %,d%n", fileLength);
+			log.warnf("[HexEditPanelFile : loadData] file is empty %,d%n", fileLength);
 			return;
 		} // if
 
@@ -166,8 +166,8 @@ public class HexEditor {
 		setActiveFileInfo(subjectFile);
 		
 		log.info("Loading File:");
-		log.info("       Path : %s%n", activeFileAbsolutePath);
-		log.info("       Size : %1$,d bytes  [%1$#X]%n%n", fileLength);
+		log.infof("       Path : %s%n", activeFileAbsolutePath);
+		log.infof("       Size : %1$,d bytes  [%1$#X]%n%n", fileLength);
 		setActivityStates(FILE_ACTIVE);
 
 		// log.info("activeFile: %s%n", activeFileAbsolutePath);
@@ -179,7 +179,7 @@ public class HexEditor {
 			Path target = Paths.get(workingFile.getAbsolutePath());
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			log.error("Failed to copy %s to %s", activeFileAbsolutePath, workingFile.getAbsolutePath());
+			log.errorf("Failed to copy %s to %s", activeFileAbsolutePath, workingFile.getAbsolutePath());
 			e.printStackTrace();
 		} // try
 
@@ -195,7 +195,7 @@ public class HexEditor {
 			fileChannel.close();
 		} catch (IOException ioe) {
 			Toolkit.getDefaultToolkit().beep();
-			log.addError("[loadFile]: " + ioe.getMessage());
+			log.errorf("[loadFile]: %s" , ioe.getMessage());
 		} // try
 
 		hexEditDisplay.setData(fileMap);
@@ -227,9 +227,9 @@ public class HexEditor {
 			return;
 		} // if
 		for (File file : tempFiles) {
-			log.addInfo("Deleting file: " + file.getName());
+			log.infof("Deleting file: %s" , file.getName());
 			if (!file.delete()) {
-				log.error("Bad Delete" + file.getName());
+				log.errorf("Bad Delete %s" ,file.getName());
 			} // if bad delete
 		} // if not null
 	}// removeAllTempFiles
@@ -240,7 +240,7 @@ public class HexEditor {
 			result = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
 			// log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
 		} catch (IOException e) {
-			log.addError("failed to make WorkingFile", e.getMessage());
+			log.errorf("Failed to make WorkingFile: %s", e.getMessage());
 			e.printStackTrace();
 		} // try
 		return result;
@@ -256,7 +256,7 @@ public class HexEditor {
 	}// doFileOpen
 
 	private void doFileClose() {
-		log.addInfo("** [doFileClose] **");
+		log.info("** [doFileClose] **");
 		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
 			return; // get out
 		} // if
@@ -274,14 +274,14 @@ public class HexEditor {
 			Files.copy(workingPath, originalPath, StandardCopyOption.REPLACE_EXISTING);
 			hexEditDisplay.setDataChanged(false);
 		} catch (IOException e) {
-			log.addError("Failed to Save %s to %s", workingFile.getAbsolutePath(), activeFileAbsolutePath);
+			log.errorf("Failed to Save %s to %s", workingFile.getAbsolutePath(), activeFileAbsolutePath);
 			e.printStackTrace();
 		} // try
 
 	}// doFileSave
 
 	private void doFileSaveAs() {
-		log.addInfo("** [doFileSaveAs] **");
+		log.info("** [doFileSaveAs] **");
 		JFileChooser chooser = new JFileChooser(activeFilePath);
 		if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
 			return; // just get out
@@ -367,7 +367,7 @@ public class HexEditor {
 
 		setActivityStates(NO_FILE);
 
-		log.addInfo("Starting .........");
+		log.info("Starting .........");
 		removeAllWorkingFiles();
 //		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
 
@@ -701,7 +701,7 @@ public class HexEditor {
 					break;
 
 				default:
-					log.addSpecial(actionEvent.getActionCommand());
+					log.special(actionEvent.getActionCommand());
 				}// switch
 			} // if
 		}// actionPerformed

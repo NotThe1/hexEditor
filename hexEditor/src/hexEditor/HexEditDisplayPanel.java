@@ -122,7 +122,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		EditAtom editAtom = new EditAtom(location, oldValue, newValue, panelSource);
 		editCaretaker.addEdit(editAtom);
 
-		log.addInfo(String.format("%s  location: %#X, from %02X, to %02X", editAtom.getEditType(), location, oldValue,newValue));
+		log.infof(String.format("%s  location: %#X, from %02X, to %02X", editAtom.getEditType(), location, oldValue,newValue));
 		source.put(location, newValue);
 	}// updateSource
 
@@ -275,7 +275,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			hexDoc.insertString(hexDoc.getLength(), strAscii, asciiAttributes);
 			hexDoc.insertString(hexDoc.getLength(), System.lineSeparator(), null);
 		} catch (BadLocationException e) {
-			log.addError("Bad Insert - line at :" + strAddress);
+			log.errorf("Bad Insert - line at : %s",strAddress);
 			e.printStackTrace();
 		} // try
 
