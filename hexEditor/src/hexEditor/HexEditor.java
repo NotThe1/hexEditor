@@ -351,7 +351,8 @@ public class HexEditor {
 		MenuUtility.saveRecentFileList(myPrefs, mnuFile);
 		myPrefs = null;
 
-		System.exit(0);
+		frameBase.dispose();
+//		System.exit(0);
 	}// appClose
 
 	private void appInit() {
