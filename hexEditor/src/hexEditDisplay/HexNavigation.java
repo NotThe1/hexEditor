@@ -1,4 +1,4 @@
-package hexEditor;
+package hexEditDisplay;
 
 import javax.swing.text.NavigationFilter;
 import javax.swing.text.Position;

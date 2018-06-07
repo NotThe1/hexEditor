@@ -1,4 +1,4 @@
-package hexEditor;
+package hexEditDisplay;
 
 /*    Memento    */
 public class EditAtom {

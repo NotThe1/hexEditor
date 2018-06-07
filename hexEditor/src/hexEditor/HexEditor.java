@@ -43,6 +43,8 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 
+import hexEditDisplay.HexEditDisplayPanel;
+
 public class HexEditor {
 
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();

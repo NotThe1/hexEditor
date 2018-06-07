@@ -1,5 +1,22 @@
-package hexEditor;
-
+package hexEditDisplay;
+/* @formatter:off */
+/**
+ * 
+ * @author Frank Martyn 
+ *  May , 2018
+ *  
+ *  AsciiForms is a class the deals with a byte value and its 3 forms
+ *  1) As a byte itself :   0x61
+ *  2) The String representation of that byte value : "61"
+ *  3) The Ascii representation of that byte : A
+ *  
+ *  The class, given one of the forms of the byte value will yield the other two.
+ *  If the value does not have a printable representation a period(.) is provided for the ascii.
+ *  
+ *  The value can be tested to determine if it is printable.
+ *
+ */
+/* @formatter:on  */
 
 public  class AsciiForms {
 	private static  AsciiForms instance = new AsciiForms();
