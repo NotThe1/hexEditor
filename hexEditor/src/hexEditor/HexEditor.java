@@ -1,5 +1,6 @@
 package hexEditor;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -42,6 +43,8 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import hexEditDisplay.HexEditDisplayPanel;
 
@@ -55,6 +58,8 @@ public class HexEditor {
 	String activeFileAbsolutePath;
 
 	File workingFile;
+
+	boolean dataChanged;
 
 	/**
 	 * Launch the application.
@@ -71,6 +76,11 @@ public class HexEditor {
 			}// run
 		});
 	}// main
+	
+	private void setDataChange(boolean state) {
+		this.dataChanged = state;
+		hexEditDisplay.setDataChanged(state);
+	}//setDataChange
 
 	private void setUIasNoFile() {
 		displayFileName(NO_FILE_SELECTED, NO_FILE_SELECTED);
@@ -105,8 +115,10 @@ public class HexEditor {
 			setUIasFileActive();
 			break;
 		default:
-			log.errorf("Bad Activity State -> %s" , activity);
+			log.errorf("Bad Activity State -> %s", activity);
 		}// switch
+		setDataChange(false);
+		lblFileName.setForeground(Color.BLACK);
 	}// setActivityStates
 
 	/* sets each menu to the passed state, and sets menuItems sent to opposite state) */
@@ -166,7 +178,7 @@ public class HexEditor {
 
 		workingFile = makeWorkingFile();
 		setActiveFileInfo(subjectFile);
-		
+
 		log.info("Loading File:");
 		log.infof("       Path : %s%n", activeFileAbsolutePath);
 		log.infof("       Size : %1$,d bytes  [%1$#X]%n%n", fileLength);
@@ -197,14 +209,13 @@ public class HexEditor {
 			fileChannel.close();
 		} catch (IOException ioe) {
 			Toolkit.getDefaultToolkit().beep();
-			log.errorf("[loadFile]: %s" , ioe.getMessage());
+			log.errorf("[loadFile]: %s", ioe.getMessage());
 		} // try
 
 		hexEditDisplay.setData(fileMap);
 		hexEditDisplay.run();
 		fileMap = null;
 		// hexEditDisplay.run();
-
 	}// loadFile
 
 	// ---------------------------------------------------------
@@ -229,9 +240,9 @@ public class HexEditor {
 			return;
 		} // if
 		for (File file : tempFiles) {
-			log.infof("Deleting file: %s" , file.getName());
+			log.infof("Deleting file: %s", file.getName());
 			if (!file.delete()) {
-				log.errorf("Bad Delete %s" ,file.getName());
+				log.errorf("Bad Delete %s", file.getName());
 			} // if bad delete
 		} // if not null
 	}// removeAllTempFiles
@@ -274,12 +285,12 @@ public class HexEditor {
 		Path workingPath = Paths.get(workingFile.getAbsolutePath());
 		try {
 			Files.copy(workingPath, originalPath, StandardCopyOption.REPLACE_EXISTING);
-			hexEditDisplay.setDataChanged(false);
+			setDataChange(false);
+			lblFileName.setForeground(Color.BLACK);
 		} catch (IOException e) {
 			log.errorf("Failed to Save %s to %s", workingFile.getAbsolutePath(), activeFileAbsolutePath);
 			e.printStackTrace();
 		} // try
-
 	}// doFileSave
 
 	private void doFileSaveAs() {
@@ -301,8 +312,7 @@ public class HexEditor {
 	/* if data changed save i,t if user wants to save it */
 	private int checkForDataChange() {
 		int result = JOptionPane.NO_OPTION;
-
-		if (hexEditDisplay.isDataChanged()) {
+		if (dataChanged) {
 			String message = String.format("File: %s has outstanding changes.%nDo you want to save it before exiting?",
 					activeFileName);
 			result = JOptionPane.showConfirmDialog(frameBase.getContentPane(), message, "Exit Hex Editor",
@@ -315,7 +325,6 @@ public class HexEditor {
 				/* do nothing special */
 			} // if answer
 		} // DataChanged
-
 		return result;
 	}// checkForDataChange
 
@@ -352,7 +361,7 @@ public class HexEditor {
 		myPrefs = null;
 
 		frameBase.dispose();
-//		System.exit(0);
+		// System.exit(0);
 	}// appClose
 
 	private void appInit() {
@@ -372,8 +381,8 @@ public class HexEditor {
 
 		log.info("Starting .........");
 		removeAllWorkingFiles();
-//		loadFile(new File("C:\\Temp\\A\\testBase.asm"));
-
+		// loadFile(new File("C:\\Temp\\A\\testBase.asm"));
+		hexEditDisplay.addChangeListener(applicationAdapter);
 	}// appInit
 
 	public HexEditor() {
@@ -664,7 +673,7 @@ public class HexEditor {
 	private JTextPane textLog;
 	//////////////////////////////////////////////////////////////////////////
 
-	class ApplicationAdapter implements ActionListener {// , ListSelectionListener
+	class ApplicationAdapter implements ActionListener, ChangeListener {// , ListSelectionListener
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
 			String name = ((Component) actionEvent.getSource()).getName();
@@ -708,8 +717,14 @@ public class HexEditor {
 				}// switch
 			} // if
 		}// actionPerformed
+
+		/* Change Listener */
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			dataChanged = true;
+			log.info("Change event", "");
+			lblFileName.setForeground(Color.RED);
+		}// stateChanged
 	}// class AdapterAction
-
-
 
 }// class GUItemplate

@@ -1,5 +1,11 @@
 package hexEditDisplay;
-
+/*
+ * @version 1.0
+ * @date  2018-06-12
+ * 
+ * Adding a ChangeEvent to manage a dataChange one-time event
+ * 
+ */
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -22,6 +28,9 @@ import javax.swing.JTextPane;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.EventListenerList;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
@@ -59,34 +68,9 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private SimpleAttributeSet addressAttributes;
 	private SimpleAttributeSet dataAttributes;
 	private SimpleAttributeSet asciiAttributes;
-
-	// public void test(int location, byte value) {
-	// source.put(location, value);
-	// if (!isVisible(location)) {
-	// currentLineStart = location;
-	// scrollBar.setValue(location / LINE_SIZE);
-	// } // if visible
-	// log.addSpecial(String.format("currentLineStart = %04X", currentLineStart));
-	// int displacement = location - currentLineStart;
-	// log.addSpecial(String.format("Offset = %04X", displacement));
-	// int line = displacement / LINE_SIZE;
-	// log.addSpecial(String.format("line = %04X", line));
-	// int lineStart = displacement / LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
-	// log.addSpecial(String.format("lineStart = %04X", lineStart));
-	// int bytePosition = displacement % LINE_SIZE;
-	// log.addSpecial(String.format("bytePosition = %X", bytePosition));
-	// int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START ? 1 : 0;
-	// log.addSpecial(String.format("pastMidLine = %s", midLineAdjusment));
-	// int dataPosition = lineStart + (bytePosition * HEUtility.CHARS_PER_BYTE_DATA) + midLineAdjusment;
-	// log.addSpecial(String.format("dataPosition = %X", dataPosition));
-	// int asciiPosition = lineStart + HEUtility.ASCII_COL_START + (bytePosition * HEUtility.CHARS_PER_BYTE_ASCII)
-	// + midLineAdjusment;
-	// log.addSpecial(String.format("dataPosition = %X", dataPosition));
-	// fillPane();
-	// // textHex.setCaretPosition(dataPosition);
-	// textHex.setCaretPosition(asciiPosition);
-	// }//
-
+	
+	private boolean dataChanged;
+	
 	@Override
 	public void run() {
 		// System.out.println("[HexEditDisplayPanel.run]");
@@ -105,11 +89,8 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		return ans;
 	}// isVisible
 
-	public boolean isDataChanged() {
-		return hexFilter.isDataChanged();
-	}// isDataChanged
-
 	public void setDataChanged(boolean state) {
+		dataChanged = false;
 		hexFilter.setDataChanged(state);
 	}// setDataChanged
 
@@ -118,13 +99,17 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	}// getCurrentLineStart
 
 	public void updateValue(int dot, byte newValue, String panelSource) {
+		if (!dataChanged) {
+			dataChanged = true;
+			fireChangeEvent();
+		}//if
 		int location = HEUtility.getSourceIndex(dot) + currentLineStart;
 		byte oldValue = source.get(location);
 
 		EditAtom editAtom = new EditAtom(location, oldValue, newValue, panelSource);
 		editCaretaker.addEdit(editAtom);
 
-		log.infof(String.format("%s  location: %#X, from %02X, to %02X", editAtom.getEditType(), location, oldValue,newValue));
+		log.infof(String.format("%s  location: %#X, from %02X, to %02X%n", editAtom.getEditType(), location, oldValue,newValue));
 		source.put(location, newValue);
 	}// updateSource
 
@@ -201,13 +186,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		clearAllDocs();
 
 		int sourceIndex = currentLineStart;// address to display
-		// byte[] activeLine = new byte[LINE_SIZE];
-
-		// String message = String.format("currentExtent: %04X, currentMax: %04X, currentLineStart: %04X%n",
-		// currentExtent,
-		// currentMax, currentLineStart);
-		// log.addInfo(message);
-
 		int linesToDisplay = Math.min(currentExtent, currentMax - (currentLineStart / LINE_SIZE));
 
 		int bytesToRead = LINE_SIZE;
@@ -224,12 +202,9 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 			} // if
 		} // for
 
-		// log.info("[fill()] sourceIndex = %1$d (0X%1$04X)%n", sourceIndex);
-		// log.info("[fill()] sourceIndex-currentLineStart = %1$d (0X%1$04X)%n", sourceIndex - currentLineStart);
 		hexNavigation.setLimits(sourceIndex - currentLineStart);
 		setTextPanesCaretListeners(true);
 		textHex.setCaretPosition(0);
-		// log.info("scrollBar.getValue() = %04X%n", scrollBar.getValue());
 	}// fillPane
 
 	public void clear() {
@@ -253,14 +228,13 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	private void setTextPanesCaretListeners(boolean status) {
 		/* status true = on/enables; false = off/disabled */
-
 		if (status) {
 			textAddr.addCaretListener(adapterHexEditDisplay);
 			textHex.addCaretListener(adapterHexEditDisplay);
 		} else {
 			textAddr.removeCaretListener(adapterHexEditDisplay);
 			textHex.removeCaretListener(adapterHexEditDisplay);
-		} //
+		} //if
 
 	}// setTextPanesEnabled
 
@@ -406,14 +380,35 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	}// makeStyles1
 		//////////////////////////////////////////////////////////////////////////////////////
+	//--------------------------------------------------
+	EventListenerList listenerList= new EventListenerList();
+	
+	public void addChangeListener(ChangeListener changeListener) {
+		listenerList.add(ChangeListener.class, changeListener);
+	}//addChangeListener
+	
+	public void removeChangeListener(ChangeListener changeListener) {
+		listenerList.remove(ChangeListener.class, changeListener);
+	}//removeChangeListener
+	
+	protected void fireChangeEvent() {
+		Object[] listeners = listenerList.getListenerList();
+		//process
+		ChangeEvent changeEvent = new ChangeEvent(this);
+		for (int i = listeners.length - 2; i >= 0; i -= 2) {
+			if(listeners[i]==ChangeListener.class) {
+				((ChangeListener) listeners[i+1]).stateChanged(changeEvent);
+			}//if
+		}//for
+	}//fireChangeEvent
+	
+	//--------------------------------------------------
 
 	public HexEditDisplayPanel() {
 		setPreferredSize(new Dimension(790, 500));
 		setMaximumSize(new Dimension(790, 32767));
 		setMinimumSize(new Dimension(790, 0));
 		setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		// setAlignmentY(Component.TOP_ALIGNMENT);
-		// setAlignmentX(Component.LEFT_ALIGNMENT);
 		initialize();
 		appInit();
 	}// Constructor
@@ -438,6 +433,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} // try
+		setDataChanged(false);
 	}// appInit
 
 	private void initialize() {
@@ -468,21 +464,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		gbl_hdAddress.columnWeights = new double[] { Double.MIN_VALUE };
 		gbl_hdAddress.rowWeights = new double[] { Double.MIN_VALUE };
 		hdAddress.setLayout(gbl_hdAddress);
-
-		// lblAddress = new JLabel("00000000");
-		// lblAddress.setVisible(true);
-		// lblAddress.setPreferredSize(new Dimension(92, 14));
-		// lblAddress.setMinimumSize(new Dimension(92, 14));
-		// lblAddress.setMaximumSize(new Dimension(92, 14));
-		// lblAddress.setForeground(Color.RED);
-		// lblAddress.setFont(new Font("Courier New", Font.BOLD, 16));
-		// GridBagConstraints gbc_lblAddress = new GridBagConstraints();
-		// gbc_lblAddress.fill = GridBagConstraints.VERTICAL;
-		// gbc_lblAddress.anchor = GridBagConstraints.WEST;
-		// gbc_lblAddress.insets = new Insets(0, 0, 5, 5);
-		// gbc_lblAddress.gridx = 0;
-		// gbc_lblAddress.gridy = 0;
-		// add(lblAddress, gbc_lblAddress);
 
 		textIndex = new JTextPane();
 		textIndex.setEditable(false);
@@ -560,7 +541,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	private JScrollBar scrollBar;
 	private JTextPane textHex;
-	// private JLabel lblAddress;
 	private JTextPane textAddr;
 	private JTextPane textIndex;
 	private HDNumberBox hdAddress;
@@ -580,7 +560,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 				return;
 			} // if
 			currentLineStart = adjustmentEvent.getValue() * HEUtility.BYTES_PER_LINE;
-			// spinnerAddress.setValue(LINE_SIZE * currentLineStart);
 			fillPane();
 		}// adjustmentValueChanged
 
