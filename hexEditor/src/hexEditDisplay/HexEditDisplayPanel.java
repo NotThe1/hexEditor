@@ -1,6 +1,6 @@
 package hexEditDisplay;
 /*
- * @version 1.0
+ * @version 1.1
  * @date  2018-06-12
  * 
  * Adding a ChangeEvent to manage a dataChange one-time event
@@ -70,10 +70,10 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 	private SimpleAttributeSet asciiAttributes;
 	
 	private boolean dataChanged;
+	private String name;
 	
 	@Override
 	public void run() {
-		// System.out.println("[HexEditDisplayPanel.run]");
 		clearAllDocs();
 		currentLineStart = 0;
 		setUpScrollBar();
@@ -93,6 +93,18 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		dataChanged = false;
 		hexFilter.setDataChanged(state);
 	}// setDataChanged
+	
+	public boolean isDataChanged() {
+		return dataChanged;
+	}//isDataChanged
+	
+	public void setName(String name) {
+		this.name =name;
+	}//setName
+	
+	public String getName() {
+		return name;
+	}//getName
 
 	public int getCurrentLineStart() {
 		return this.currentLineStart;
@@ -151,7 +163,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		} // if visible
 
 		int displacement = location - currentLineStart;
-		// int line =displacement/LINE_SIZE;
 		int lineStart = displacement / LINE_SIZE * HEUtility.COLUMNS_PER_LINE;
 		int bytePosition = displacement % LINE_SIZE;
 		int midLineAdjusment = bytePosition >= HEUtility.MID_LINE_START ? 1 : 0;
@@ -180,7 +191,6 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		if (currentExtent == 0) {
 			return;
 		} // if nothing to display
-			// log.addInfo("[HexEditDisplayPanel.fillPane]");
 
 		setTextPanesCaretListeners(false);
 		clearAllDocs();
@@ -240,8 +250,8 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	private void addHexLineToDocument(int currentAddress, byte[] data) {
 		String strAddress = getAddress(currentAddress);
-		String strData = getData(data);
-		String strAscii = getAscii(data);
+		String strData = getDataLine(data);
+		String strAscii = getAsciiLine(data);
 
 		try {
 			addrDoc.insertString(addrDoc.getLength(), strAddress, addressAttributes);
@@ -261,7 +271,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		return String.format(FORMAT_ADDR, currentAddress);
 	}// getAddress
 
-	private String getData(byte[] data) {
+	private String getDataLine(byte[] data) {
 		StringBuilder sb = new StringBuilder();
 		int i = 0;
 		for (; i < data.length; i++) {
@@ -281,7 +291,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	}// getData
 
-	private String getAscii(byte[] data) {
+	private String getAsciiLine(byte[] data) {
 		StringBuilder sb = new StringBuilder();
 
 		byte b;
@@ -309,6 +319,8 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 	public void setData(ByteBuffer data) {
 		source = data.duplicate();
+		source.rewind();
+		dataChanged= false;
 	}// setData
 
 	public void setData(byte[] data) {
@@ -320,7 +332,15 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 		source = ByteBuffer.allocate(bufferSize);
 		source.put(data);
 		source.rewind();
+		dataChanged= false;
 	}// setData
+	
+	public byte[] getData() {
+		byte[] ans = new byte[dataSize];
+		source.rewind();
+		source.get(ans);
+		return ans;
+	}//getData
 
 	protected void setUpScrollBar() {
 		if (source == null) {

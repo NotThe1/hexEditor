@@ -382,6 +382,7 @@ public class HexEditor {
 		log.info("Starting .........");
 		removeAllWorkingFiles();
 		// loadFile(new File("C:\\Temp\\A\\testBase.asm"));
+		hexEditDisplay.setName("Hex editor");
 		hexEditDisplay.addChangeListener(applicationAdapter);
 	}// appInit
 
@@ -720,9 +721,9 @@ public class HexEditor {
 
 		/* Change Listener */
 		@Override
-		public void stateChanged(ChangeEvent e) {
+		public void stateChanged(ChangeEvent changeEvent) {
 			dataChanged = true;
-			log.info("Change event", "");
+			log.infof("Change event from %s%n%n", ((HexEditDisplayPanel) changeEvent.getSource()).getName());
 			lblFileName.setForeground(Color.RED);
 		}// stateChanged
 	}// class AdapterAction

@@ -9,7 +9,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 
-import hexEditDisplay.HexEditDisplayPanel;
+//import hexEditDisplay.HexEditDisplayPanel;
 
 public class HexFilter extends DocumentFilter {
 	private HexEditDisplayPanel host;
