@@ -1,9 +1,15 @@
 package hexEditor;
-
+/*
+ *    2019-09-02 Tested on both Unix and Windows
+ *    2019-09-02  Added LINE_SEPARATOR and LINE_SEPARATOR_SIZE (HEUtility.java)
+ */
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -16,6 +22,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -52,6 +59,8 @@ public class HexEditor {
 
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
+	
+	Font myCourierFont;
 
 	String activeFileName;
 	String activeFilePath;
@@ -342,6 +351,26 @@ public class HexEditor {
 	}// closeFile
 
 	////////////////////////////////////////////////////////////////////////////////////////
+	
+	private void makeCourierFont(){
+		try (InputStream in = this.getClass().getResourceAsStream("/resources/myCourierNew.ttf");){
+			Font myCourierFont = Font.createFont(Font.TRUETYPE_FONT, in);
+			
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			ge.registerFont(myCourierFont);
+//			labelSouth.setFont(new Font(myCourierFont.getName(), Font.BOLD, 48));
+		} catch (FontFormatException e) {
+			System.err.println("Font Format Exception");
+			log.errorf("FontFormatException  - Failed to create create \"Courier New\" Font%n", "");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("IO Exception");
+			log.errorf("IOException  - Failed to create create \"Courier New\" Font%n", "");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}//setCourierFont
 	private void appClose() {
 		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
 			return; // get out
@@ -365,6 +394,7 @@ public class HexEditor {
 	}// appClose
 
 	private void appInit() {
+//		makeCourierFont();
 		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
 
@@ -395,8 +425,9 @@ public class HexEditor {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		makeCourierFont();
 		frameBase = new JFrame();
-		frameBase.setTitle("Hex Editor    0.1");
+		frameBase.setTitle("Hex Editor    1.0");
 		frameBase.setBounds(100, 100, 450, 300);
 		frameBase.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frameBase.addWindowListener(new WindowAdapter() {
@@ -496,7 +527,7 @@ public class HexEditor {
 		GridBagLayout gbl_panelMain = new GridBagLayout();
 		gbl_panelMain.columnWidths = new int[] { 790, 0, 0 };
 		gbl_panelMain.rowHeights = new int[] { 0, 0, 0 };
-		gbl_panelMain.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panelMain.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
 		gbl_panelMain.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
 		panelMain.setLayout(gbl_panelMain);
 

@@ -1,5 +1,8 @@
 package hexEditDisplay;
-
+/*
+ * 		2019-09-02 Tested on both Unix and Windows
+ *		2019-09-02  Added LINE_SEPARATOR and LINE_SEPARATOR_SIZE
+ */
 import java.awt.Color;
 
 import javax.swing.text.SimpleAttributeSet;
@@ -129,8 +132,12 @@ public class HEUtility {
 
 	/* Constants */
 
+	public static String LINE_SEPARATOR = System.lineSeparator();//	 \n or \r\n
+	public static int LINE_SEPARATOR_SIZE = LINE_SEPARATOR.length();
+	
 	public static final int BYTES_PER_LINE = 16; // Number of bytes from source file to display on each line
-	public static final int MID_LINE_START = BYTES_PER_LINE/2; // 
+	public static final int MID_LINE_START = BYTES_PER_LINE/2;
+	
 	/* Data Text Constants */
 
 	public static final int DATA_COL_START = 0;
@@ -145,14 +152,14 @@ public class HEUtility {
 	public static final int LAST_COLUMN_ASCII = (BYTES_PER_LINE * CHARS_PER_BYTE_ASCII + 1) + ASCII_COL_START;
 	public static final int COLUMNS_FOR_ASCII = LAST_COLUMN_ASCII-ASCII_COL_START-1;
 
-	public static final int COLUMNS_PER_LINE = LAST_COLUMN_ASCII + 2;// CR,LF
+	public static final int COLUMNS_PER_LINE = LAST_COLUMN_ASCII + LINE_SEPARATOR_SIZE;// \n or \r\n
 
 	/* Address Text Constants */
 	public static final int BYTES_PER_LINE_ADDR = 8; // Number of bytes from source file to display on each line
 	public static final int CHARS_PER_BYTE_ADDR = 3; // Number of chars used to display on each byte on a line
 	public static final int CHARS_PER_LINE_ADDR = (BYTES_PER_LINE_ADDR) + 1; // Number of chars displayed in the Address
 																				// text pane
-	public static final int COLUMNS_PER_LINE_ADDR = CHARS_PER_LINE_ADDR + 2; // actual length of the line< includes /n/r
+	public static final int COLUMNS_PER_LINE_ADDR = CHARS_PER_LINE_ADDR + LINE_SEPARATOR_SIZE; // actual length of the line< includes \n or \r\n
 
 	public static final String UNPRINTABLE = ".";
 

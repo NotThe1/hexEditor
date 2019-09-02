@@ -487,7 +487,7 @@ public class HexEditDisplayPanel extends JPanel implements Runnable {
 
 		textIndex = new JTextPane();
 		textIndex.setEditable(false);
-		textIndex.setText("00 01 02 03 04 05 06 07 08 09 0a 0B 0c 0D 0e 0F  01234567 ABCDEF00");
+		textIndex.setText("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  01234567 ABCDEF00");
 		textIndex.setMaximumSize(new Dimension(0, 0));
 		textIndex.setMinimumSize(new Dimension(0, 0));
 		textIndex.setPreferredSize(new Dimension(750, 0));
