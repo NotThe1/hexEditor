@@ -1,9 +1,16 @@
 package hexEditor;
 
+/*
+ *    2019-09-02 Tested on both Unix and Windows
+ *    2019-09-02  Added LINE_SEPARATOR and LINE_SEPARATOR_SIZE (HEUtility.java)
+ */
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -16,6 +23,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -53,6 +61,8 @@ public class HexEditor {
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
 
+	Font myCourierFont;
+
 	String activeFileName;
 	String activeFilePath;
 	String activeFileAbsolutePath;
@@ -76,11 +86,11 @@ public class HexEditor {
 			}// run
 		});
 	}// main
-	
+
 	private void setDataChange(boolean state) {
 		this.dataChanged = state;
 		hexEditDisplay.setDataChanged(state);
-	}//setDataChange
+	}// setDataChange
 
 	private void setUIasNoFile() {
 		displayFileName(NO_FILE_SELECTED, NO_FILE_SELECTED);
@@ -121,14 +131,18 @@ public class HexEditor {
 		lblFileName.setForeground(Color.BLACK);
 	}// setActivityStates
 
-	/* sets each menu to the passed state, and sets menuItems sent to opposite state) */
+	/*
+	 * sets each menu to the passed state, and sets menuItems sent to opposite
+	 * state)
+	 */
 	private void setAllMenuActivity(boolean state, JMenuItem... menuItems) {
 		Component[] menus = menuBar.getComponents();
 		for (Component menu : menus) {
 			if (menu instanceof JMenu) {
 				Component[] items = ((JMenu) menu).getMenuComponents();
 				for (Component mi : items) {
-					if (mi instanceof AbstractButton) {// recent file entries names are not set
+					if (mi instanceof AbstractButton) {// recent file entries
+														// names are not set
 						mi.setEnabled(mi.getName() == null ? !state : state);
 					} // if menuItem
 				} // for all menu items
@@ -251,7 +265,8 @@ public class HexEditor {
 		File result = null;
 		try {
 			result = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-			// log.addInfo("[HexEditor.makeWorkingFile] Working file = " + result.getAbsolutePath());
+			// log.addInfo("[HexEditor.makeWorkingFile] Working file = " +
+			// result.getAbsolutePath());
 		} catch (IOException e) {
 			log.errorf("Failed to make WorkingFile: %s", e.getMessage());
 			e.printStackTrace();
@@ -342,6 +357,28 @@ public class HexEditor {
 	}// closeFile
 
 	////////////////////////////////////////////////////////////////////////////////////////
+
+	private void makeCourierFont() {
+		try (InputStream in = this.getClass().getResourceAsStream("/resources/myCourierNew.ttf");) {
+			Font myCourierFont = Font.createFont(Font.TRUETYPE_FONT, in);
+
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			ge.registerFont(myCourierFont);
+			// labelSouth.setFont(new Font(myCourierFont.getName(), Font.BOLD,
+			// 48));
+		} catch (FontFormatException e) {
+			System.err.println("Font Format Exception");
+			log.errorf("FontFormatException  - Failed to create create \"Courier New\" Font%n", "");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("IO Exception");
+			log.errorf("IOException  - Failed to create create \"Courier New\" Font%n", "");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}// setCourierFont
+
 	private void appClose() {
 		if (checkForDataChange() == JOptionPane.CANCEL_OPTION) {
 			return; // get out
@@ -354,8 +391,7 @@ public class HexEditor {
 		Point point = frameBase.getLocation();
 		myPrefs.putInt("LocX", point.x);
 		myPrefs.putInt("LocY", point.y);
-		// myPrefs.putInt("DividerLocationMajor", splitPaneMajor.getDividerLocation());
-		// myPrefs.putInt("DividerLocationMinor", splitPaneMinor.getDividerLocation());
+		myPrefs.putInt("DividerLocationMain", splitPaneMain.getDividerLocation());
 		myPrefs.put("CurrentPath", activeFilePath);
 		MenuUtility.saveRecentFileList(myPrefs, mnuFile);
 		myPrefs = null;
@@ -365,6 +401,7 @@ public class HexEditor {
 	}// appClose
 
 	private void appInit() {
+		// makeCourierFont();
 		log.setTextPane(textLog, "HexEditor Log");
 		/* setup action for standard edit behaviors */
 
@@ -373,6 +410,7 @@ public class HexEditor {
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		frameBase.setSize(myPrefs.getInt("Width", 761), myPrefs.getInt("Height", 693));
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
+		splitPaneMain.setDividerLocation(myPrefs.getInt("DividerLocationMain",500));
 		activeFilePath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
 		myPrefs = null;
@@ -381,7 +419,6 @@ public class HexEditor {
 
 		log.info("Starting .........");
 		removeAllWorkingFiles();
-		// loadFile(new File("C:\\Temp\\A\\testBase.asm"));
 		hexEditDisplay.setName("Hex editor");
 		hexEditDisplay.addChangeListener(applicationAdapter);
 	}// appInit
@@ -395,8 +432,9 @@ public class HexEditor {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		makeCourierFont();
 		frameBase = new JFrame();
-		frameBase.setTitle("Hex Editor    0.1");
+		frameBase.setTitle("Hex Editor    1.0");
 		frameBase.setBounds(100, 100, 450, 300);
 		frameBase.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frameBase.addWindowListener(new WindowAdapter() {
@@ -407,9 +445,9 @@ public class HexEditor {
 		});
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 0, 0, 0, 0, 0 };
+		gridBagLayout.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 		gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, Double.MIN_VALUE };
 		frameBase.getContentPane().setLayout(gridBagLayout);
 
 		toolBar = new JToolBar();
@@ -483,57 +521,37 @@ public class HexEditor {
 		GridBagConstraints gbc_lblFileName = new GridBagConstraints();
 		gbc_lblFileName.insets = new Insets(0, 0, 5, 0);
 		gbc_lblFileName.gridx = 0;
-		gbc_lblFileName.gridy = 1;
+		gbc_lblFileName.gridy = 2;
 		frameBase.getContentPane().add(lblFileName, gbc_lblFileName);
 
-		panelMain = new JPanel();
-		GridBagConstraints gbc_panelMain = new GridBagConstraints();
-		gbc_panelMain.insets = new Insets(0, 0, 5, 0);
-		gbc_panelMain.fill = GridBagConstraints.BOTH;
-		gbc_panelMain.gridx = 0;
-		gbc_panelMain.gridy = 2;
-		frameBase.getContentPane().add(panelMain, gbc_panelMain);
-		GridBagLayout gbl_panelMain = new GridBagLayout();
-		gbl_panelMain.columnWidths = new int[] { 790, 0, 0 };
-		gbl_panelMain.rowHeights = new int[] { 0, 0, 0 };
-		gbl_panelMain.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
-		gbl_panelMain.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
-		panelMain.setLayout(gbl_panelMain);
+		splitPaneMain = new JSplitPane();
+		splitPaneMain.setOneTouchExpandable(true);
+		GridBagConstraints gbc_splitPaneMain = new GridBagConstraints();
+		gbc_splitPaneMain.insets = new Insets(0, 0, 5, 0);
+		gbc_splitPaneMain.fill = GridBagConstraints.BOTH;
+		gbc_splitPaneMain.gridx = 0;
+		gbc_splitPaneMain.gridy = 3;
+		frameBase.getContentPane().add(splitPaneMain, gbc_splitPaneMain);
 
 		hexEditDisplay = new HexEditDisplayPanel();
+		splitPaneMain.setLeftComponent(hexEditDisplay);
 		hexEditDisplay.setPreferredSize(new Dimension(780, 0));
 		hexEditDisplay.setMinimumSize(new Dimension(780, 0));
 		hexEditDisplay.setMaximumSize(new Dimension(780, 2147483647));
-		GridBagConstraints gbc_hexEditDisplay = new GridBagConstraints();
-		gbc_hexEditDisplay.insets = new Insets(0, 0, 5, 5);
-		gbc_hexEditDisplay.fill = GridBagConstraints.BOTH;
-		gbc_hexEditDisplay.gridx = 0;
-		gbc_hexEditDisplay.gridy = 0;
-		panelMain.add(hexEditDisplay, gbc_hexEditDisplay);
 
-		splitPane = new JSplitPane();
-		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		GridBagConstraints gbc_splitPane = new GridBagConstraints();
-		gbc_splitPane.insets = new Insets(0, 0, 5, 0);
-		gbc_splitPane.fill = GridBagConstraints.BOTH;
-		gbc_splitPane.gridx = 1;
-		gbc_splitPane.gridy = 0;
-		panelMain.add(splitPane, gbc_splitPane);
-
-		scrollPane = new JScrollPane();
-		splitPane.setRightComponent(scrollPane);
+		scrollPane_1 = new JScrollPane();
+		splitPaneMain.setRightComponent(scrollPane_1);
 
 		textLog = new JTextPane();
+		scrollPane_1.setViewportView(textLog);
 		textLog.setEditable(false);
-		scrollPane.setViewportView(textLog);
-		splitPane.setDividerLocation(1);
 
 		JPanel panelStatus = new JPanel();
 		panelStatus.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		GridBagConstraints gbc_panelStatus = new GridBagConstraints();
 		gbc_panelStatus.fill = GridBagConstraints.BOTH;
 		gbc_panelStatus.gridx = 0;
-		gbc_panelStatus.gridy = 3;
+		gbc_panelStatus.gridy = 5;
 		frameBase.getContentPane().add(panelStatus, gbc_panelStatus);
 
 		menuBar = new JMenuBar();
@@ -668,13 +686,13 @@ public class HexEditor {
 	private JMenuItem mnuEditUndo;
 	private JMenuItem mnuEditRedo;
 	private HexEditDisplayPanel hexEditDisplay;
-	private JPanel panelMain;
-	private JSplitPane splitPane;
-	private JScrollPane scrollPane;
 	private JTextPane textLog;
+	private JSplitPane splitPaneMain;
+	private JScrollPane scrollPane_1;
 	//////////////////////////////////////////////////////////////////////////
 
-	class ApplicationAdapter implements ActionListener, ChangeListener {// , ListSelectionListener
+	class ApplicationAdapter implements ActionListener, ChangeListener {// ,
+																		// ListSelectionListener
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
 			String name = ((Component) actionEvent.getSource()).getName();
