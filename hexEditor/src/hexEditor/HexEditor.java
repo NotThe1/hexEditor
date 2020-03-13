@@ -62,7 +62,9 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import appLogger.AppLogger;
 import hexEditDisplay.HexEditDisplayPanel;
+import menuUtility.MenuUtility;
 
 public class HexEditor {
 	String title = "Hex Editor    1.0";
@@ -290,7 +292,7 @@ public class HexEditor {
 		if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
 			return; // just get out
 		} // if open
-		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(), applicationAdapter);
+		JMenuItem newMenuItem = MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(),applicationAdapter);
 		loadFile(chooser.getSelectedFile());
 	}// doFileOpen
 
@@ -327,7 +329,7 @@ public class HexEditor {
 		} // if open
 		File newActiveFile = chooser.getSelectedFile();
 		setActiveFileInfo(newActiveFile);
-		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(), applicationAdapter);
+		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(),applicationAdapter);
 		doFileSave();
 	}// doFileSaveAs
 
@@ -423,7 +425,7 @@ public class HexEditor {
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
 		splitPaneMain.setDividerLocation(myPrefs.getInt("DividerLocationMain", 500));
 		activeFilePath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
-		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
+		MenuUtility.loadRecentFileList(myPrefs, mnuFile,applicationAdapter);
 		myPrefs = null;
 
 		setActivityStates(NO_FILE);
