@@ -4,12 +4,7 @@ package hexEditor;
  *    2019-09-02 Tested on both Unix and Windows
  *    2019-09-02  Added LINE_SEPARATOR and LINE_SEPARATOR_SIZE (HEUtility.java)
  */
-/*
- * all icons from SourceForge\icons\png\22X22\actions
- * except:
- *        SourceForge\icons\png\22X22\devices\printer-7.png
- * except SourceForge\icons\png\128X128\kcmcwm.png
- */
+
 
 import java.awt.Color;
 import java.awt.Component;
@@ -42,6 +37,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -63,14 +59,21 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import appLogger.AppLogger;
-import hexEditDisplay.HexEditDisplayPanel;
+import hexEditDisplayPanel.HexEditDisplayPanel;
 import menuUtility.MenuUtility;
 
 public class HexEditor {
-	String title = "Hex Editor    1.0";
+	String title = "Hex Editor    2.0";
 	/* @formatter:off */
 	Image classImage = Toolkit.getDefaultToolkit().getImage(HexEditor.class.getResource("/resources/hexEdit.png"));
+	Icon openIcon = new ImageIcon(HexEditor.class.getResource("/resources/open.png"));
+	Icon closeIcon = new ImageIcon(HexEditor.class.getResource("/resources/close.png"));
+	Icon saveIcon = new ImageIcon(HexEditor.class.getResource("/resources/save.png"));
+	Icon saveAsIcon = new ImageIcon(HexEditor.class.getResource("/resources/saveAs.png"));
+	Icon unDoIcon = new ImageIcon(HexEditor.class.getResource("/resources/undo.png"));
+	Icon reDoIcon = new ImageIcon(HexEditor.class.getResource("/resources/redo.png"));
 	/* @formatter:on */
+	
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
 
@@ -292,7 +295,7 @@ public class HexEditor {
 		if (chooser.showOpenDialog(frameBase) != JFileChooser.APPROVE_OPTION) {
 			return; // just get out
 		} // if open
-		JMenuItem newMenuItem = MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(),applicationAdapter);
+		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(), applicationAdapter);
 		loadFile(chooser.getSelectedFile());
 	}// doFileOpen
 
@@ -329,7 +332,7 @@ public class HexEditor {
 		} // if open
 		File newActiveFile = chooser.getSelectedFile();
 		setActiveFileInfo(newActiveFile);
-		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(),applicationAdapter);
+		MenuUtility.addFileItem(mnuFile, chooser.getSelectedFile(), applicationAdapter);
 		doFileSave();
 	}// doFileSaveAs
 
@@ -386,7 +389,6 @@ public class HexEditor {
 		} catch (IOException e) {
 			System.err.println("IO Exception");
 			log.errorf("IOException  - Failed to create create \"Courier New\" Font%n", "");
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -425,7 +427,7 @@ public class HexEditor {
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
 		splitPaneMain.setDividerLocation(myPrefs.getInt("DividerLocationMain", 500));
 		activeFilePath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
-		MenuUtility.loadRecentFileList(myPrefs, mnuFile,applicationAdapter);
+		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
 		myPrefs = null;
 
 		setActivityStates(NO_FILE);
@@ -473,10 +475,9 @@ public class HexEditor {
 		gbc_toolBar.gridy = 0;
 		frameBase.getContentPane().add(toolBar, gbc_toolBar);
 
-		btnFileOpen = new JButton("");
+		btnFileOpen = new JButton(openIcon);
 		btnFileOpen.setName(BTN_FILE_OPEN);
 		btnFileOpen.addActionListener(applicationAdapter);
-		btnFileOpen.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/open.png")));
 		btnFileOpen.setToolTipText("Open");
 		toolBar.add(btnFileOpen);
 
@@ -485,31 +486,28 @@ public class HexEditor {
 		separator.setOrientation(SwingConstants.VERTICAL);
 		toolBar.add(separator);
 
-		btnFileSave = new JButton("");
+		btnFileSave = new JButton(saveIcon);
 		btnFileSave.setName(BTN_FILE_SAVE);
 		btnFileSave.addActionListener(applicationAdapter);
 
-		btnFileClose = new JButton("");
+		btnFileClose = new JButton(closeIcon);
 		btnFileClose.setName(BTN_FILE_CLOSE);
 		btnFileClose.addActionListener(applicationAdapter);
 		btnFileClose.setToolTipText("Close");
-		btnFileClose.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/close.png")));
 		toolBar.add(btnFileClose);
 
 		separator_7 = new JSeparator();
 		separator_7.setPreferredSize(new Dimension(5, 0));
 		separator_7.setOrientation(SwingConstants.VERTICAL);
 		toolBar.add(separator_7);
-		btnFileSave.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/save.png")));
 		btnFileSave.setToolTipText("Save");
 		btnFileSave.setSelectedIcon(null);
 		toolBar.add(btnFileSave);
 
-		btnEditSaveAs = new JButton("");
+		btnEditSaveAs = new JButton(saveAsIcon);
 		btnEditSaveAs.setName(BTN_FILE_SAVE_AS);
 		btnEditSaveAs.addActionListener(applicationAdapter);
 		btnEditSaveAs.setToolTipText("Save As");
-		btnEditSaveAs.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/saveAs.png")));
 		toolBar.add(btnEditSaveAs);
 
 		JSeparator separator_3 = new JSeparator();
@@ -517,18 +515,16 @@ public class HexEditor {
 		separator_3.setOrientation(SwingConstants.VERTICAL);
 		toolBar.add(separator_3);
 
-		btnEditUndo = new JButton("");
+		btnEditUndo = new JButton(unDoIcon);
 		btnEditUndo.setName(BTN_EDIT_UNDO);
 		btnEditUndo.addActionListener(applicationAdapter);
-		btnEditUndo.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/undo.png")));
 		btnEditUndo.setToolTipText("Undo");
 		toolBar.add(btnEditUndo);
 
-		btnEditRedo = new JButton("");
+		btnEditRedo = new JButton(reDoIcon);
 		btnEditRedo.setName(BTN_EDIT_REDO);
 		btnEditRedo.addActionListener(applicationAdapter);
 		btnEditRedo.setToolTipText("Redo");
-		btnEditRedo.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/redo.png")));
 		toolBar.add(btnEditRedo);
 
 		lblFileName = new JLabel("New label");
@@ -574,8 +570,7 @@ public class HexEditor {
 		mnuFile = new JMenu("File");
 		menuBar.add(mnuFile);
 
-		mnuFileOpen = new JMenuItem("Open...");
-		mnuFileOpen.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/open.png")));
+		mnuFileOpen = new JMenuItem("Open...", openIcon);
 		mnuFileOpen.setName(MNU_FILE_OPEN);
 		mnuFileOpen.addActionListener(applicationAdapter);
 		mnuFile.add(mnuFileOpen);
@@ -583,23 +578,20 @@ public class HexEditor {
 		JSeparator separator99 = new JSeparator();
 		mnuFile.add(separator99);
 
-		mnuFileSave = new JMenuItem("Save...");
-		mnuFileSave.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/save.png")));
+		mnuFileSave = new JMenuItem("Save...", saveIcon);
 		mnuFileSave.setName(MNU_FILE_SAVE);
 		mnuFileSave.addActionListener(applicationAdapter);
 
-		mnuFileClose = new JMenuItem("Close");
+		mnuFileClose = new JMenuItem("Close", closeIcon);
 		mnuFileClose.setName(MNU_FILE_CLOSE);
 		mnuFileClose.addActionListener(applicationAdapter);
-		mnuFileClose.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/close.png")));
 		mnuFile.add(mnuFileClose);
 
 		separator_1 = new JSeparator();
 		mnuFile.add(separator_1);
 		mnuFile.add(mnuFileSave);
 
-		mnuFileSaveAs = new JMenuItem("Save As...");
-		mnuFileSaveAs.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/saveAs.png")));
+		mnuFileSaveAs = new JMenuItem("Save As...", saveAsIcon);
 		mnuFileSaveAs.setName(MNU_FILE_SAVE_AS);
 		mnuFileSaveAs.addActionListener(applicationAdapter);
 		mnuFile.add(mnuFileSaveAs);
@@ -630,16 +622,14 @@ public class HexEditor {
 		mnuEdit = new JMenu("Edit");
 		menuBar.add(mnuEdit);
 
-		mnuEditUndo = new JMenuItem("Undo");
+		mnuEditUndo = new JMenuItem("Undo", unDoIcon);
 		mnuEditUndo.setName(MNU_EDIT_UNDO);
 		mnuEditUndo.addActionListener(applicationAdapter);
-		mnuEditUndo.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/undo.png")));
 		mnuEdit.add(mnuEditUndo);
 
-		mnuEditRedo = new JMenuItem("Redo");
+		mnuEditRedo = new JMenuItem("Redo", reDoIcon);
 		mnuEditRedo.setName(MNU_EDIT_REDO);
 		mnuEditRedo.addActionListener(applicationAdapter);
-		mnuEditRedo.setIcon(new ImageIcon(HexEditor.class.getResource("/resources/redo.png")));
 		mnuEdit.add(mnuEditRedo);
 
 	}// initialize
