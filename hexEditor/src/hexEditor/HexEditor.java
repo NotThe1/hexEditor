@@ -4,6 +4,13 @@ package hexEditor;
  *    2019-09-02 Tested on both Unix and Windows
  *    2019-09-02  Added LINE_SEPARATOR and LINE_SEPARATOR_SIZE (HEUtility.java)
  */
+/*
+ * all icons from SourceForge\icons\png\22X22\actions
+ * except:
+ *        SourceForge\icons\png\22X22\devices\printer-7.png
+ * except SourceForge\icons\png\128X128\kcmcwm.png
+ */
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -13,6 +20,7 @@ import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -57,7 +65,10 @@ import javax.swing.event.ChangeListener;
 import hexEditDisplay.HexEditDisplayPanel;
 
 public class HexEditor {
-
+	String title = "Hex Editor    1.0";
+	/* @formatter:off */
+	Image classImage = Toolkit.getDefaultToolkit().getImage(HexEditor.class.getResource("/resources/hexEdit.png"));
+	/* @formatter:on */
 	ApplicationAdapter applicationAdapter = new ApplicationAdapter();
 	AppLogger log = AppLogger.getInstance();
 
@@ -410,7 +421,7 @@ public class HexEditor {
 		Preferences myPrefs = Preferences.userNodeForPackage(HexEditor.class).node(this.getClass().getSimpleName());
 		frameBase.setSize(myPrefs.getInt("Width", 761), myPrefs.getInt("Height", 693));
 		frameBase.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
-		splitPaneMain.setDividerLocation(myPrefs.getInt("DividerLocationMain",500));
+		splitPaneMain.setDividerLocation(myPrefs.getInt("DividerLocationMain", 500));
 		activeFilePath = myPrefs.get("CurrentPath", DEFAULT_DIRECTORY);
 		MenuUtility.loadRecentFileList(myPrefs, mnuFile, applicationAdapter);
 		myPrefs = null;
@@ -434,7 +445,8 @@ public class HexEditor {
 	private void initialize() {
 		makeCourierFont();
 		frameBase = new JFrame();
-		frameBase.setTitle("Hex Editor    1.0");
+		frameBase.setTitle(title);
+		frameBase.setIconImage(classImage);
 		frameBase.setBounds(100, 100, 450, 300);
 		frameBase.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frameBase.addWindowListener(new WindowAdapter() {
